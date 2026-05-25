@@ -1,0 +1,11 @@
+.layout-body {
+  display: flex;
+  padding-top: 70px;
+}
+.main-content {
+  margin-left: 280px;
+  flex: 1;
+  min-height: calc(100vh - 70px);
+  background: #e8edf5;
+  padding: 24px;
+}

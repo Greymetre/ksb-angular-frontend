@@ -1,0 +1,29 @@
+<nav class="sidebar">
+  <!-- <div class="collapse-dot"></div> -->
+  <ul class="menu-list">
+    <ng-container *ngTemplateOutlet="menuLevel; context: { items: menuItems, child: false }"></ng-container>
+  </ul>
+</nav>
+
+<ng-template #menuLevel let-items="items" let-child="child">
+  <li *ngFor="let item of items" [class.has-children]="item.children?.length" [class.expanded]="item.expanded">
+    <div
+      class="menu-item"
+      [class.submenu-item]="child"
+      [class.active]="isActive(item)"
+      [class.disabled]="!item.route && !item.children?.length"
+      (click)="navigate(item)"
+    >
+      <span class="menu-icon">
+        <span class="material-icons">{{ item.icon }}</span>
+      </span>
+      <span class="menu-label">{{ item.label }}</span>
+      <span *ngIf="item.children?.length" class="chevron material-icons">
+        {{ item.expanded ? 'expand_less' : 'expand_more' }}
+      </span>
+    </div>
+    <ul *ngIf="item.children?.length && item.expanded" class="submenu">
+      <ng-container *ngTemplateOutlet="menuLevel; context: { items: item.children, child: true }"></ng-container>
+    </ul>
+  </li>
+</ng-template>

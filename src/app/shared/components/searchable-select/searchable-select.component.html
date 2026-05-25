@@ -1,0 +1,20 @@
+<div class="select2-like" [class.open]="opened" [class.disabled]="disabled">
+  <button type="button" class="select-trigger" (click)="toggleOpen()" [disabled]="disabled">
+    <span class="selected-text" [class.placeholder]="selectedArray.length === 0">{{ selectedText }}</span>
+    <span class="select-actions">
+      <span class="material-icons clear-icon" *ngIf="allowClear && selectedArray.length > 0" (click)="clear($event)">close</span>
+      <span class="material-icons arrow-icon">expand_more</span>
+    </span>
+  </button>
+
+  <div class="select-panel" *ngIf="opened" (click)="$event.stopPropagation()">
+    <input class="select-search-box" type="text" [(ngModel)]="search" placeholder="Search"/>
+    <div class="select-options">
+      <button type="button" class="select-option" *ngFor="let option of filteredOptions" (click)="choose(option, $event)" [class.selected]="isSelected(option.id)">
+        <span class="material-icons check-icon" [class.visible]="multiple || isSelected(option.id)">{{ multiple ? (isSelected(option.id) ? 'check_box' : 'check_box_outline_blank') : 'check' }}</span>
+        <span>{{ option.label }}</span>
+      </button>
+      <div class="empty-option" *ngIf="filteredOptions.length === 0">No results found</div>
+    </div>
+  </div>
+</div>

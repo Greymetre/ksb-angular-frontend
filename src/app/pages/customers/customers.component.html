@@ -1,0 +1,436 @@
+<div class="customer-page">
+  <div class="toast-message" [class.show]="toast.visible" [class.error]="toast.type === 'error'">
+    {{ toast.message }}
+  </div>
+
+  <div class="page-heading">
+    <div class="page-icon"><span class="material-icons">diversity_3</span></div>
+    <h2 class="page-title">Customers List</h2>
+  </div>
+
+  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="filter-card">
+    <div class="filter-grid">
+      <div class="filter-field">
+        <label>Customer Type</label>
+        <app-searchable-select [options]="allCustomerTypeOptions" [selected]="filter.customer_type || ''" placeholder="All Customer Types" (selectedChange)="filter.customer_type = $event || null; loadCustomers()"></app-searchable-select>
+      </div>
+      <div class="filter-field">
+        <label>Status</label>
+        <app-searchable-select [options]="activeFilterOptions" [selected]="filter.active || ''" placeholder="All Status" (selectedChange)="filter.active = $event || ''; loadCustomers()"></app-searchable-select>
+      </div>
+      <div class="filter-field">
+        <label>State</label>
+        <app-searchable-select [options]="filterStates" [selected]="filter.state_id || null" placeholder="All States" (selectedChange)="filter.state_id = $event || null; onStateChange('filter')"></app-searchable-select>
+      </div>
+      <div class="filter-field">
+        <label>City</label>
+        <app-searchable-select [options]="filterCities" [selected]="filter.city_id || null" placeholder="All Cities" (selectedChange)="filter.city_id = $event || null; onCityChange('filter')"></app-searchable-select>
+      </div>
+      <div class="filter-field search-field">
+        <label>Search</label>
+        <input type="text" [(ngModel)]="filter.search" (keyup.enter)="loadCustomers()" placeholder="Search customers"/>
+      </div>
+      <div class="filter-actions">
+        <button class="btn-primary" (click)="loadCustomers()">
+          <span class="material-icons">search</span>
+          Search
+        </button>
+        <button class="btn-secondary" (click)="filter = {}; loadCustomers()">
+          <span class="material-icons">restart_alt</span>
+          Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-toolbar">
+    <div class="toolbar-left">
+      <label>Show <input type="number" [(ngModel)]="showEntries" class="entries-input" min="5" max="100"/> entries</label>
+    </div>
+    <div class="toolbar-right">
+      <input #fileInput type="file" class="file-input" accept=".xlsx,.xls,.csv" (change)="upload($event)"/>
+      <div class="icon-action-group">
+        <button class="btn-icon-round" title="Upload" (click)="triggerUpload()" *ngIf="canUpload" [disabled]="uploading">
+          <span class="material-icons">cloud_upload</span>
+        </button>
+        <button class="btn-icon-round" title="Download" (click)="exportCustomers()" *ngIf="canDownload">
+          <span class="material-icons">cloud_download</span>
+        </button>
+        <button class="btn-icon-round" title="Template" (click)="downloadTemplate()" *ngIf="canTemplate">
+          <span class="material-icons">description</span>
+        </button>
+        <button class="btn-icon-round add-btn" title="Add Customer" (click)="openCreateModal()" *ngIf="canCreate">
+          <span class="material-icons">add</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="loading-bar" *ngIf="loading">Loading customers...</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>No <span class="material-icons sort-icon">arrow_upward</span></th>
+          <th>Action</th>
+          <th>Active</th>
+          <th>Customer Type</th>
+          <th>Name</th>
+          <th>Mobile</th>
+          <th>City</th>
+          <th>State</th>
+          <th>Created By</th>
+          <th>Created At</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let customer of filteredCustomers; let index = index">
+          <td>{{ index + 1 }}</td>
+          <td>
+            <div class="action-btns">
+              <button class="btn-edit" title="Edit Customer" (click)="openEditModal(customer)" *ngIf="canEdit">
+                <span class="material-icons">edit</span>
+              </button>
+              <button class="btn-danger" title="Delete Customer" (click)="deleteCustomer(customer)" *ngIf="canDelete">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+          </td>
+          <td>
+            <label class="toggle-switch">
+              <input type="checkbox" [checked]="customer.active === 'Y'" (change)="toggleActive(customer, $event)" [disabled]="!canEdit"/>
+              <span class="slider"></span>
+            </label>
+          </td>
+          <td>{{ typeName(customer) }}</td>
+          <td class="name-cell">{{ customer.name }}</td>
+          <td>{{ customer.mobile }}</td>
+          <td>{{ customer.cityName }}</td>
+          <td>{{ customer.stateName }}</td>
+          <td>{{ customer.createdByName || customer.createdBy }}</td>
+          <td>{{ formatDate(customer.createdAt) }}</td>
+        </tr>
+        <tr *ngIf="!loading && filteredCustomers.length === 0">
+          <td colspan="10" class="empty-row">No customers found</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="table-footer">
+      <span class="entries-info">Showing {{ filteredCustomers.length ? 1 : 0 }} to {{ filteredCustomers.length }} of {{ customers.length }} entries</span>
+      <div class="pagination">
+        <button class="page-btn">PREV</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">NEXT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-box customer-modal" (click)="$event.stopPropagation()">
+    <div class="modal-icon"><span class="material-icons">diversity_3</span></div>
+    <div class="modal-header-row">
+      <h3>{{ form.id ? 'Edit Customer' : 'Add Customer' }}</h3>
+      <button class="modal-close-btn" (click)="closeModal()" [disabled]="saving">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="section-title">Customer Type</div>
+      <div class="form-grid">
+        <div class="modal-field">
+          <label>Customer Type <span class="req">*</span></label>
+          <app-searchable-select [options]="customerTypes" [selected]="form.customerType" placeholder="Select Customer Type" (selectedChange)="form.customerType = $event; onTypeChange()"></app-searchable-select>
+        </div>
+        <div class="modal-field">
+          <label>Active</label>
+          <app-searchable-select [options]="activeStatusOptions" [selected]="form.active" placeholder="Select Status" (selectedChange)="form.active = $event"></app-searchable-select>
+        </div>
+      </div>
+
+      <ng-container *ngIf="isDistributor">
+        <div class="section-title">Images</div>
+        <div class="form-grid">
+          <div class="modal-field">
+            <label>Shop Image</label>
+            <input type="file" accept="image/*" (change)="onFileChange('shop_image', $event)"/>
+            <small>{{ fileLabel('shop_image') }}</small>
+          </div>
+          <div class="modal-field">
+            <label>Profile Image</label>
+            <input type="file" accept="image/*" (change)="onFileChange('profile_image', $event)"/>
+            <small>{{ fileLabel('profile_image') }}</small>
+          </div>
+        </div>
+
+        <div class="section-title">Basic Distributor Information</div>
+        <div class="form-grid">
+          <div class="modal-field">
+            <label>Distributor Legal Name <span class="req">*</span></label>
+            <input type="text" [ngModel]="field('legal_name')" (ngModelChange)="setField('legal_name', $event)" maxlength="200"/>
+          </div>
+          <div class="modal-field">
+            <label>Trade / Business Name</label>
+            <input type="text" [ngModel]="field('trade_name')" (ngModelChange)="setField('trade_name', $event)" maxlength="200"/>
+          </div>
+          <div class="modal-field">
+            <label>Distributor Code <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.customerCode" (ngModelChange)="setField('distributor_code', $event)" maxlength="200"/>
+          </div>
+          <div class="modal-field">
+            <label>Business Status <span class="req">*</span></label>
+            <app-searchable-select [options]="distributorStatusOptions" [selected]="field('business_status')" placeholder="Select Status" (selectedChange)="setField('business_status', $event)"></app-searchable-select>
+          </div>
+          <div class="modal-field">
+            <label>Business Start Date <span class="req">*</span></label>
+            <input type="date" [ngModel]="field('business_start_date')" (ngModelChange)="setField('business_start_date', $event)"/>
+          </div>
+        </div>
+
+        <div class="section-title">Contact & Communication</div>
+        <div class="form-grid">
+          <div class="modal-field">
+            <label>Primary Contact Person <span class="req">*</span></label>
+            <input type="text" [ngModel]="field('contact_person')" (ngModelChange)="setField('contact_person', $event)" maxlength="200"/>
+          </div>
+          <div class="modal-field">
+            <label>Primary Mobile <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.mobile" maxlength="10"/>
+          </div>
+          <div class="modal-field">
+            <label>Alternate Mobile</label>
+            <input type="text" [(ngModel)]="form.contactNumber" maxlength="10"/>
+          </div>
+          <div class="modal-field">
+            <label>Primary Email <span class="req">*</span></label>
+            <input type="email" [(ngModel)]="form.email" maxlength="250"/>
+          </div>
+        </div>
+
+        <div class="section-title">Address & Location Information</div>
+        <div class="form-grid">
+          <div class="modal-field wide-field">
+            <label>Address Line 1 <span class="req">*</span></label>
+            <textarea [ngModel]="field('address1')" (ngModelChange)="setField('address1', $event)" rows="3"></textarea>
+          </div>
+          <ng-container *ngTemplateOutlet="addressSelects"></ng-container>
+          <div class="modal-field wide-field">
+            <label>Shipping Address <span class="req">*</span></label>
+            <textarea [ngModel]="field('shipping_address')" (ngModelChange)="setField('shipping_address', $event)" rows="3"></textarea>
+          </div>
+        </div>
+
+        <div class="section-title">Business & Operational Information</div>
+        <div class="form-grid">
+          <div class="modal-field">
+            <label>Beat Route <span class="req">*</span></label>
+            <input type="text" [ngModel]="field('beat_id')" (ngModelChange)="setField('beat_id', $event)" maxlength="100"/>
+          </div>
+        </div>
+
+        <div class="section-title">Compliance & Legal</div>
+        <div class="form-grid">
+          <div class="modal-field">
+            <label>Business Registration Type <span class="req">*</span></label>
+            <app-searchable-select [options]="registrationTypeOptions" [selected]="field('registration_type')" placeholder="Registration Type" (selectedChange)="setField('registration_type', $event)"></app-searchable-select>
+          </div>
+          <div class="modal-field">
+            <label>Upload Additional Documents</label>
+            <input type="file" accept="image/*,.pdf" multiple (change)="onFileChange('documents', $event, true)"/>
+            <small>{{ fileLabel('documents') }}</small>
+          </div>
+          <div class="modal-field">
+            <label>Upload MOU</label>
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="onFileChange('mou_file', $event)"/>
+            <small>{{ fileLabel('mou_file') }}</small>
+          </div>
+        </div>
+
+        <div class="section-title">Sales & Performance Information</div>
+        <div class="form-grid">
+          <div class="modal-field">
+            <label>Assigned Sales Executive <span class="req">*</span></label>
+            <app-searchable-select [options]="employeeOptions" [selected]="numListField('sales_executive_id')" [multiple]="true" placeholder="Select Sales Executive" (selectedChange)="setListField('sales_executive_id', $event)"></app-searchable-select>
+          </div>
+          <div class="modal-field">
+            <label>Assigned Supervisor / ASM / RSM <span class="req">*</span></label>
+            <app-searchable-select [options]="employeeOptions" [selected]="numField('supervisor_id')" placeholder="Select Supervisor" (selectedChange)="setField('supervisor_id', $event)"></app-searchable-select>
+          </div>
+          <div class="modal-field">
+            <label>Customer Segment <span class="req">*</span></label>
+            <app-searchable-select [options]="customerSegmentOptions" [selected]="field('customer_segment')" placeholder="Select Segment" (selectedChange)="setField('customer_segment', $event)"></app-searchable-select>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="isRetailer">
+        <div class="section-title">Retailer Information</div>
+        <div class="form-grid">
+          <div class="modal-field">
+            <label>Shop Name <span class="req">*</span></label>
+            <input type="text" [ngModel]="field('shop_name')" (ngModelChange)="setField('shop_name', $event)" maxlength="200"/>
+          </div>
+          <div class="modal-field">
+            <label>Owner Name <span class="req">*</span></label>
+            <input type="text" [ngModel]="field('owner_name')" (ngModelChange)="setField('owner_name', $event)" maxlength="200"/>
+          </div>
+          <div class="modal-field">
+            <label>Distributor Name <span class="req">*</span></label>
+            <app-searchable-select [options]="distributorOptions" [selected]="numField('distributor_name')" placeholder="Select Domestic Distributor" (selectedChange)="setField('distributor_name', $event)"></app-searchable-select>
+          </div>
+          <div class="modal-field">
+            <label>Agri Distributor <span class="req">*</span></label>
+            <app-searchable-select [options]="distributorOptions" [selected]="numField('agri_distributor')" placeholder="Select Agri Distributor" (selectedChange)="setField('agri_distributor', $event)"></app-searchable-select>
+          </div>
+          <div class="modal-field">
+            <label>Select Employee <span class="req">*</span></label>
+            <app-searchable-select [options]="employeeOptions" [selected]="numListField('employee_id')" [multiple]="true" placeholder="Select Employee" (selectedChange)="setListField('employee_id', $event)"></app-searchable-select>
+          </div>
+          <div class="modal-field">
+            <label>Beat <span class="req">*</span></label>
+            <input type="text" [ngModel]="field('beat_id')" (ngModelChange)="setField('beat_id', $event)" maxlength="100"/>
+          </div>
+          <div class="modal-field wide-field">
+            <div class="mobile-row-head">
+              <label>Mobile Numbers <span class="req">*</span></label>
+              <button type="button" class="btn-mini" (click)="addMobileNumber()">
+                <span class="material-icons">add</span>
+              </button>
+            </div>
+            <div class="mobile-list">
+              <div class="mobile-input-row" *ngFor="let mobile of form.mobileNumbers; let index = index">
+                <input type="text" [ngModel]="mobile" (ngModelChange)="updateMobileNumber(index, $event)" maxlength="10" placeholder="Mobile Number {{ index + 1 }}"/>
+                <button type="button" class="btn-mini danger" (click)="removeMobileNumber(index)" [disabled]="form.mobileNumbers.length === 1">
+                  <span class="material-icons">remove</span>
+                </button>
+              </div>
+            </div>
+            <small>You can add up to 5 mobile numbers.</small>
+          </div>
+          <div class="modal-field">
+            <label>WhatsApp / Alternate Number</label>
+            <input type="text" [(ngModel)]="form.contactNumber" maxlength="10"/>
+          </div>
+        </div>
+
+        <div class="section-title">Address</div>
+        <div class="form-grid">
+          <div class="modal-field wide-field">
+            <label>Address Line <span class="req">*</span></label>
+            <textarea [ngModel]="field('address_line')" (ngModelChange)="setField('address_line', $event)" rows="3"></textarea>
+          </div>
+          <ng-container *ngTemplateOutlet="addressSelects"></ng-container>
+          <div class="modal-field">
+            <label>Belt / Area / Market Name</label>
+            <input type="text" [ngModel]="field('belt_area_market_name')" (ngModelChange)="setField('belt_area_market_name', $event)" maxlength="200"/>
+          </div>
+        </div>
+
+        <div class="section-title">GST & PAN</div>
+        <div class="form-grid">
+          <div class="modal-field">
+            <label>GST Number</label>
+            <input type="text" [ngModel]="field('gst_number')" (ngModelChange)="setField('gst_number', $event)" maxlength="50"/>
+          </div>
+          <div class="modal-field">
+            <label>GST Attachment</label>
+            <input type="file" accept="image/*,.pdf" (change)="onFileChange('gst_attachment', $event)"/>
+            <small>{{ fileLabel('gst_attachment') }}</small>
+          </div>
+          <div class="modal-field">
+            <label>PAN Number</label>
+            <input type="text" [ngModel]="field('pan_number')" (ngModelChange)="setField('pan_number', $event)" maxlength="50"/>
+          </div>
+          <div class="modal-field">
+            <label>PAN Attachment</label>
+            <input type="file" accept="image/*,.pdf" (change)="onFileChange('pan_attachment', $event)"/>
+            <small>{{ fileLabel('pan_attachment') }}</small>
+          </div>
+        </div>
+
+        <div class="section-title">Bank Details</div>
+        <div class="form-grid">
+          <div class="modal-field">
+            <label>Bank Account Type</label>
+            <app-searchable-select [options]="bankAccountTypeOptions" [selected]="field('bank_account_type')" placeholder="Select Account Type" (selectedChange)="setField('bank_account_type', $event)"></app-searchable-select>
+          </div>
+          <div class="modal-field">
+            <label>Bank Name</label>
+            <input type="text" [ngModel]="field('bank_name')" (ngModelChange)="setField('bank_name', $event)" maxlength="200"/>
+          </div>
+          <div class="modal-field">
+            <label>Bank Account Number</label>
+            <input type="password" [ngModel]="field('bank_account_number')" (ngModelChange)="setField('bank_account_number', $event)" autocomplete="new-password"/>
+          </div>
+          <div class="modal-field">
+            <label>Confirm Bank Account Number</label>
+            <input type="text" [ngModel]="field('bank_account_number_confirm')" (ngModelChange)="setField('bank_account_number_confirm', $event)" autocomplete="off"/>
+          </div>
+          <div class="modal-field">
+            <label>IFSC Code</label>
+            <input type="text" [ngModel]="field('ifsc_code')" (ngModelChange)="setField('ifsc_code', $event)" maxlength="20"/>
+          </div>
+          <div class="modal-field">
+            <label>Account Holder Name</label>
+            <input type="text" [ngModel]="field('account_holder_name')" (ngModelChange)="setField('account_holder_name', $event)" maxlength="200"/>
+          </div>
+          <div class="modal-field">
+            <label>Blank Cheque / Passbook Attachment</label>
+            <input type="file" accept="image/*,.pdf" (change)="onFileChange('bank_proof', $event)"/>
+            <small>{{ fileLabel('bank_proof') }}</small>
+          </div>
+          <div class="modal-field">
+            <label>Shop Photo</label>
+            <input type="file" accept="image/*" (change)="onFileChange('shop_photo', $event)"/>
+            <small>{{ fileLabel('shop_photo') }}</small>
+          </div>
+          <div class="modal-field wide-field">
+            <label>GPS Location Updates</label>
+            <input type="text" [ngModel]="field('gps_location')" (ngModelChange)="setField('gps_location', $event)" placeholder="e.g., 17.385044,78.486671"/>
+          </div>
+        </div>
+      </ng-container>
+
+      <div class="modal-actions">
+        <button class="btn-submit-modal" (click)="submit()" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Submit' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #addressSelects>
+  <div class="modal-field wide-field pincode-search-field">
+    <label>Search Pincode</label>
+    <div class="inline-search">
+      <input type="text" [(ngModel)]="addressSearch.directPincode" (ngModelChange)="onDirectPincodeChange($event)" (keyup.enter)="searchPincodeAndFill()" maxlength="10" placeholder="Enter pincode"/>
+      <button type="button" class="btn-inline" (click)="searchPincodeAndFill()">
+        <span class="material-icons">search</span>
+      </button>
+    </div>
+  </div>
+  <div class="modal-field">
+    <label>Country <span class="req">*</span></label>
+    <app-searchable-select [options]="countries" [selected]="numField('country_id')" placeholder="Select Country" (selectedChange)="setField('country_id', $event); onCountryChange('form')"></app-searchable-select>
+  </div>
+  <div class="modal-field">
+    <label>State <span class="req">*</span></label>
+    <app-searchable-select [options]="states" [selected]="numField('state_id')" placeholder="Select State" (selectedChange)="setField('state_id', $event); onStateChange('form')"></app-searchable-select>
+  </div>
+  <div class="modal-field">
+    <label>District <span class="req">*</span></label>
+    <app-searchable-select [options]="districts" [selected]="numField('district_id')" placeholder="Select District" (selectedChange)="setField('district_id', $event); onDistrictChange()"></app-searchable-select>
+  </div>
+  <div class="modal-field">
+    <label>City <span class="req">*</span></label>
+    <app-searchable-select [options]="cities" [selected]="numField('city_id')" placeholder="Select City" (selectedChange)="setField('city_id', $event); onCityChange('form')"></app-searchable-select>
+  </div>
+  <div class="modal-field">
+    <label>Pincode <span class="req">*</span></label>
+    <app-searchable-select [options]="pincodes" [selected]="numField('pincode_id')" placeholder="Select Pincode" (selectedChange)="setField('pincode_id', $event)"></app-searchable-select>
+  </div>
+</ng-template>
