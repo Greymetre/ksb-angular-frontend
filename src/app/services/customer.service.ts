@@ -98,6 +98,13 @@ export class CustomerService {
     );
   }
 
+  get(id: number): Observable<CustomerItem> {
+    return this.http.get<ApiResponse>(`${this.baseUrl}/customers/${id}`, { headers: this.authHeaders() }).pipe(
+      map(response => this.normalizeItem(this.pickFirstValue(response, ['customer', 'Customer', 'data.customer', 'data']) || {})),
+      catchError(error => this.handleError(error))
+    );
+  }
+
   create(payload: CustomerPayload | FormData): Observable<CustomerActionResult> {
     return this.http.post<ApiResponse>(`${this.baseUrl}/customers`, payload, { headers: this.authHeaders() }).pipe(
       map(response => this.actionResult(response, 'customer', 'Customer saved successfully')),

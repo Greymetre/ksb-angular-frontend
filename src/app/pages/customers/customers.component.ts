@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { finalize, timeout } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { AddressOption, CustomerFilter, CustomerItem, CustomerService, LocationDetails } from '../../services/customer.service';
@@ -110,6 +111,7 @@ export class CustomersComponent implements OnInit {
     private customerService: CustomerService,
     private userService: UserService,
     private authService: AuthService,
+    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -143,6 +145,10 @@ export class CustomersComponent implements OnInit {
 
   get canDelete(): boolean {
     return this.authService.hasPermission('customer_delete');
+  }
+
+  get canShow(): boolean {
+    return this.authService.hasAnyPermission(['customer_access', 'customer_show']);
   }
 
   get canUpload(): boolean {
@@ -235,6 +241,10 @@ export class CustomersComponent implements OnInit {
     this.showModal = true;
     this.loadAddressChain();
     this.refreshView();
+  }
+
+  openShowPage(customer: CustomerItem): void {
+    this.router.navigate(['/customers', customer.id]);
   }
 
   closeModal(): void {

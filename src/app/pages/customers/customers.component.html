@@ -90,6 +90,9 @@
           <td>{{ index + 1 }}</td>
           <td>
             <div class="action-btns">
+              <button class="btn-view" title="View Customer" (click)="openShowPage(customer)" *ngIf="canShow">
+                <span class="material-icons">visibility</span>
+              </button>
               <button class="btn-edit" title="Edit Customer" (click)="openEditModal(customer)" *ngIf="canEdit">
                 <span class="material-icons">edit</span>
               </button>

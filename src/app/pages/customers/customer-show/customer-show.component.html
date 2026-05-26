@@ -1,0 +1,121 @@
+<div class="customer-show-page">
+  <div class="page-heading">
+    <div class="page-icon"><span class="material-icons">diversity_3</span></div>
+    <div>
+      <h2 class="page-title">Customer Details</h2>
+      <div class="page-subtitle" *ngIf="customer">{{ displayName }}</div>
+    </div>
+    <button class="btn-secondary back-btn" (click)="backToList()">
+      <span class="material-icons">arrow_back</span>
+      Back
+    </button>
+  </div>
+
+  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="loading-bar" *ngIf="loading">Loading customer...</div>
+
+  <ng-container *ngIf="customer">
+    <div class="points-grid">
+      <div class="point-card" *ngFor="let card of pointCards" [class.success]="card.tone === 'success'" [class.danger]="card.tone === 'danger'" [class.info]="card.tone === 'info'">
+        <span>{{ card.label }}</span>
+        <strong>{{ card.value | number:'1.0-0' }}</strong>
+      </div>
+    </div>
+
+    <div class="profile-card">
+      <div class="profile-main">
+        <img [src]="imageUrl" alt="Customer image"/>
+        <div>
+          <h3>{{ displayName }}</h3>
+          <p>{{ customer.customerTypeName || 'Customer' }}</p>
+        </div>
+      </div>
+      <div class="profile-meta">
+        <span class="status-pill" [class.inactive]="customer.active !== 'Y'">{{ customer.active === 'Y' ? 'Active' : 'Inactive' }}</span>
+        <span>{{ customer.customerCode || field('distributor_code') }}</span>
+        <span>{{ customer.mobile || field('mobile_numbers') }}</span>
+      </div>
+    </div>
+
+    <div class="tab-card">
+      <div class="tabs">
+        <button *ngFor="let tab of tabs" [class.active]="activeTab === tab.id" (click)="setTab(tab.id)">
+          <span class="material-icons">{{ tab.icon }}</span>
+          {{ tab.label }}
+        </button>
+      </div>
+
+      <div class="tab-body" *ngIf="activeTab === 'details'">
+        <div class="details-grid">
+          <section class="info-panel">
+            <h4>Personal Information</h4>
+            <div class="info-row" *ngFor="let row of personalRows">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.value }}</strong>
+            </div>
+          </section>
+
+          <section class="info-panel">
+            <h4>Address Info</h4>
+            <div class="info-row" *ngFor="let row of addressRows">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.value }}</strong>
+            </div>
+          </section>
+
+          <section class="info-panel">
+            <h4>Customer Information</h4>
+            <div class="info-row" *ngFor="let row of customerRows">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.value }}</strong>
+            </div>
+          </section>
+
+          <section class="info-panel">
+            <h4>Compliance & Legal</h4>
+            <div class="info-row" *ngFor="let row of complianceRows">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.value }}</strong>
+            </div>
+            <div class="empty-panel" *ngIf="complianceRows.length === 0">No compliance details found</div>
+          </section>
+
+          <section class="info-panel">
+            <h4>Bank Details</h4>
+            <div class="info-row" *ngFor="let row of bankRows">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.value }}</strong>
+            </div>
+            <div class="empty-panel" *ngIf="bankRows.length === 0">No bank details found</div>
+          </section>
+
+          <section class="info-panel" *ngIf="customRows.length > 0">
+            <h4>Other Information</h4>
+            <div class="info-row" *ngFor="let row of customRows">
+              <span>{{ row.label }}</span>
+              <strong>{{ row.value }}</strong>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="tab-body" *ngIf="activeTab === 'kyc'">
+        <div class="document-grid">
+          <a *ngIf="field('gst_attachment')" [href]="mediaUrl(field('gst_attachment'))" target="_blank" rel="noopener">GST Attachment</a>
+          <a *ngIf="field('pan_attachment')" [href]="mediaUrl(field('pan_attachment'))" target="_blank" rel="noopener">PAN Attachment</a>
+          <a *ngIf="field('bank_proof')" [href]="mediaUrl(field('bank_proof'))" target="_blank" rel="noopener">Bank Proof</a>
+          <a *ngIf="field('mou_file')" [href]="mediaUrl(field('mou_file'))" target="_blank" rel="noopener">MOU File</a>
+          <a *ngIf="field('shop_photo')" [href]="mediaUrl(field('shop_photo'))" target="_blank" rel="noopener">Shop Photo</a>
+        </div>
+        <div class="empty-panel" *ngIf="!field('gst_attachment') && !field('pan_attachment') && !field('bank_proof') && !field('mou_file') && !field('shop_photo')">No KYC documents found</div>
+      </div>
+
+      <div class="tab-body" *ngIf="activeTab !== 'details' && activeTab !== 'kyc'">
+        <div class="empty-state">
+          <span class="material-icons">{{ activeTabIcon() }}</span>
+          <strong>No records found</strong>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

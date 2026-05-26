@@ -25,6 +25,8 @@ import { DistributorsComponent } from './pages/distributors/distributors.compone
 import { RolesComponent } from './pages/roles/roles.component';
 import { UsersComponent } from './pages/users/users.component';
 import { CustomersComponent } from './pages/customers/customers.component';
+import { CustomerShowComponent } from './pages/customers/customer-show/customer-show.component';
+import { NewInvoicesComponent } from './pages/new-invoices/new-invoices.component';
 import { MasterCrudComponent } from './pages/master-crud/master-crud.component';
 import { AddressMasterComponent } from './pages/address-master/address-master.component';
 import { ForbiddenComponent } from './pages/forbidden/forbidden';
@@ -45,6 +47,8 @@ import { ForbiddenComponent } from './pages/forbidden/forbidden';
     RolesComponent,
     UsersComponent,
     CustomersComponent,
+    CustomerShowComponent,
+    NewInvoicesComponent,
     MasterCrudComponent,
     AddressMasterComponent,
     ForbiddenComponent,

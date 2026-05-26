@@ -202,7 +202,6 @@ export class SidebarComponent {
         { label: 'Order Dispatch', icon: 'shopping_cart', permission: 'sale_access' }
       ]
     },
-    // { label: 'New Invoices', icon: 'receipt_long', permission: 'new_invoice_access' },
     {
       label: 'Marketing',
       icon: 'local_convenience_store',
@@ -218,17 +217,18 @@ export class SidebarComponent {
       icon: 'card_membership',
       permission: 'scheme_access',
       children: [
-        { label: 'Loyalty Scheme Master', icon: 'create', permission: 'scheme_access_list' },
-        { label: 'Transaction Coupon History', icon: 'history', permission: 'transaction_history_access' },
-        { label: 'Mobile App Users', icon: 'developer_mode', permission: 'loyalty_mobile_app_users_access' },
-        { label: 'Damage QR Entries', icon: 'insert_page_break', permission: 'damage_entry_access' },
-        { label: 'Redemption', icon: 'mp', permission: 'redemption_access' },
-        { label: 'Gift Catalogue', icon: 'model_training', permission: 'gift_access' },
-        { label: 'Gift Categories', icon: 'redeem', permission: 'gift_category_access' },
-        { label: 'Gift Sub Categories', icon: 'redeem', permission: 'gift_subcategory_access' },
-        { label: 'Gift Model', icon: 'redeem', permission: 'gift_model_access' },
-        { label: 'Gift Brand', icon: 'redeem', permission: 'gift_brand_access' },
-        { label: 'Customer KYC', icon: 'verified', permission: 'customer_kyc_access' }
+        { label: 'New Invoices', icon: 'receipt_long', route: '/new-invoices', permission: 'new_invoice_access' },
+        // { label: 'Loyalty Scheme Master', icon: 'create', permission: 'scheme_access_list' },
+        // { label: 'Transaction Coupon History', icon: 'history', permission: 'transaction_history_access' },
+        // { label: 'Mobile App Users', icon: 'developer_mode', permission: 'loyalty_mobile_app_users_access' },
+        // { label: 'Damage QR Entries', icon: 'insert_page_break', permission: 'damage_entry_access' },
+        // { label: 'Redemption', icon: 'mp', permission: 'redemption_access' },
+        // { label: 'Gift Catalogue', icon: 'model_training', permission: 'gift_access' },
+        // { label: 'Gift Categories', icon: 'redeem', permission: 'gift_category_access' },
+        // { label: 'Gift Sub Categories', icon: 'redeem', permission: 'gift_subcategory_access' },
+        // { label: 'Gift Model', icon: 'redeem', permission: 'gift_model_access' },
+        // { label: 'Gift Brand', icon: 'redeem', permission: 'gift_brand_access' },
+        // { label: 'Customer KYC', icon: 'verified', permission: 'customer_kyc_access' }
       ]
     },
     {

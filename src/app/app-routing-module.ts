@@ -10,6 +10,8 @@ import { DistributorsComponent } from './pages/distributors/distributors.compone
 import { RolesComponent } from './pages/roles/roles.component';
 import { UsersComponent } from './pages/users/users.component';
 import { CustomersComponent } from './pages/customers/customers.component';
+import { CustomerShowComponent } from './pages/customers/customer-show/customer-show.component';
+import { NewInvoicesComponent } from './pages/new-invoices/new-invoices.component';
 import { MasterCrudComponent } from './pages/master-crud/master-crud.component';
 import { AddressMasterComponent } from './pages/address-master/address-master.component';
 import { authGuard } from './guards/auth-guard';
@@ -34,6 +36,9 @@ const routes: Routes = [
       { path: 'roles', component: RolesComponent, canActivate: [authGuard], data: { permission: 'role_view' } },
       { path: 'users', component: UsersComponent, canActivate: [authGuard], data: { permission: 'user_view' } },
       { path: 'customers', component: CustomersComponent, canActivate: [authGuard], data: { permission: 'customer_access' } },
+      { path: 'customers/:id', component: CustomerShowComponent, canActivate: [authGuard], data: { permission: 'customer_access' } },
+      { path: 'new-invoices', component: NewInvoicesComponent, canActivate: [authGuard], data: { permission: 'new_invoice_access' } },
+      { path: 'new-invoices/:id', component: NewInvoicesComponent, canActivate: [authGuard], data: { permission: 'new_invoice_access' } },
       {
         path: 'countries',
         component: AddressMasterComponent,
