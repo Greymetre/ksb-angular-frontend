@@ -44,6 +44,7 @@ interface CustomerFormModel {
 })
 export class CustomersComponent implements OnInit {
   @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>;
+  private readonly retailerImageFileKeys = new Set(['gst_attachment', 'pan_attachment', 'aadhar_attachment', 'bank_proof', 'shop_photo']);
 
   readonly customerTypes: CustomerTypeOption[] = [
     { id: 1, label: 'Distributor' },
@@ -78,6 +79,8 @@ export class CustomersComponent implements OnInit {
   loading = false;
   saving = false;
   uploading = false;
+  exporting = false;
+  templating = false;
   showModal = false;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
@@ -341,6 +344,7 @@ export class CustomersComponent implements OnInit {
     if (!file) return;
 
     this.uploading = true;
+    this.showToast('Importing...', 'success');
     this.customerService.upload(file).pipe(finalize(() => {
       this.uploading = false;
       input.value = '';
@@ -360,14 +364,24 @@ export class CustomersComponent implements OnInit {
       return;
     }
 
-    this.customerService.export(this.filter).subscribe({
+    this.exporting = true;
+    this.showToast('Exporting...', 'success');
+    this.customerService.export(this.filter).pipe(finalize(() => {
+      this.exporting = false;
+      this.refreshView();
+    })).subscribe({
       next: blob => this.downloadBlob(blob, this.exportFileName()),
       error: error => this.showToast(error.message, 'error')
     });
   }
 
   downloadTemplate(): void {
-    this.customerService.template().subscribe({
+    this.templating = true;
+    this.showToast('Preparing template...', 'success');
+    this.customerService.template().pipe(finalize(() => {
+      this.templating = false;
+      this.refreshView();
+    })).subscribe({
       next: blob => this.downloadBlob(blob, 'customers-template.xlsx'),
       error: error => this.showToast(error.message, 'error')
     });
@@ -513,6 +527,12 @@ export class CustomersComponent implements OnInit {
   onFileChange(key: string, event: Event, multiple = false): void {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);
+    if (this.isRetailer && this.retailerImageFileKeys.has(key) && files.some(file => !this.isImageFile(file))) {
+      this.form.files[key] = multiple ? [] : null;
+      input.value = '';
+      this.showToast('Retailer KYC attachments must be image files only.', 'error');
+      return;
+    }
     this.form.files[key] = multiple ? files : files[0] || null;
     this.refreshView();
   }
@@ -616,6 +636,10 @@ export class CustomersComponent implements OnInit {
 
   private cleanMobileNumbers(): string[] {
     return this.form.mobileNumbers.map(value => value.trim()).filter(Boolean);
+  }
+
+  private isImageFile(file: File): boolean {
+    return file.type.startsWith('image/') || /\.(jpe?g|png|gif|webp|bmp)$/i.test(file.name);
   }
 
   private readListField(value: string | null | undefined, fallback?: string | null): string[] {

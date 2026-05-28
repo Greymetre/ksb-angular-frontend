@@ -6,11 +6,13 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { RetailersComponent } from './pages/retailers/retailers.component';
 import { RetailerCreateComponent } from './pages/retailers/retailer-create/retailer-create.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
+import { ProductMasterComponent } from './pages/product-master/product-master.component';
 import { DistributorsComponent } from './pages/distributors/distributors.component';
 import { RolesComponent } from './pages/roles/roles.component';
 import { UsersComponent } from './pages/users/users.component';
 import { CustomersComponent } from './pages/customers/customers.component';
 import { CustomerShowComponent } from './pages/customers/customer-show/customer-show.component';
+import { LoyaltySchemesComponent } from './pages/loyalty-schemes/loyalty-schemes.component';
 import { NewInvoicesComponent } from './pages/new-invoices/new-invoices.component';
 import { MasterCrudComponent } from './pages/master-crud/master-crud.component';
 import { AddressMasterComponent } from './pages/address-master/address-master.component';
@@ -32,13 +34,18 @@ const routes: Routes = [
       { path: 'retailers', component: RetailersComponent, canActivate: [authGuard], data: { permission: 'retailer_view' } },
       { path: 'retailers/create', component: RetailerCreateComponent, canActivate: [authGuard], data: { permission: 'retailer_create' } },
       { path: 'distributors', component: DistributorsComponent, canActivate: [authGuard], data: { permission: 'distributor_view' } },
-      { path: 'categories', component: CategoriesComponent, canActivate: [authGuard], data: { permission: 'category_view' } },
+      { path: 'categories', redirectTo: '/segments' },
+      { path: 'segments', component: ProductMasterComponent, canActivate: [authGuard], data: { permission: 'category_access', productMode: 'segment' } },
+      { path: 'families', component: ProductMasterComponent, canActivate: [authGuard], data: { permission: 'subcategory_access', productMode: 'family' } },
+      { path: 'subcategories', redirectTo: '/families' },
+      { path: 'products', component: ProductMasterComponent, canActivate: [authGuard], data: { permission: 'product_access', productMode: 'product' } },
       { path: 'roles', component: RolesComponent, canActivate: [authGuard], data: { permission: 'role_view' } },
       { path: 'users', component: UsersComponent, canActivate: [authGuard], data: { permission: 'user_view' } },
       { path: 'customers', component: CustomersComponent, canActivate: [authGuard], data: { permission: 'customer_access' } },
       { path: 'customers/:id', component: CustomerShowComponent, canActivate: [authGuard], data: { permission: 'customer_access' } },
       { path: 'new-invoices', component: NewInvoicesComponent, canActivate: [authGuard], data: { permission: 'new_invoice_access' } },
       { path: 'new-invoices/:id', component: NewInvoicesComponent, canActivate: [authGuard], data: { permission: 'new_invoice_access' } },
+      { path: 'loyalty-schemes', component: LoyaltySchemesComponent, canActivate: [authGuard], data: { permission: 'scheme_access_list' } },
       {
         path: 'countries',
         component: AddressMasterComponent,

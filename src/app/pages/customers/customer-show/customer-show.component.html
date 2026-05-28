@@ -100,14 +100,13 @@
       </div>
 
       <div class="tab-body" *ngIf="activeTab === 'kyc'">
-        <div class="document-grid">
-          <a *ngIf="field('gst_attachment')" [href]="mediaUrl(field('gst_attachment'))" target="_blank" rel="noopener">GST Attachment</a>
-          <a *ngIf="field('pan_attachment')" [href]="mediaUrl(field('pan_attachment'))" target="_blank" rel="noopener">PAN Attachment</a>
-          <a *ngIf="field('bank_proof')" [href]="mediaUrl(field('bank_proof'))" target="_blank" rel="noopener">Bank Proof</a>
-          <a *ngIf="field('mou_file')" [href]="mediaUrl(field('mou_file'))" target="_blank" rel="noopener">MOU File</a>
-          <a *ngIf="field('shop_photo')" [href]="mediaUrl(field('shop_photo'))" target="_blank" rel="noopener">Shop Photo</a>
+        <div class="document-grid" *ngIf="kycDocuments.length > 0">
+          <button type="button" class="document-card" *ngFor="let document of kycDocuments" (click)="openKycPreview(document)">
+            <img [src]="document.url" [alt]="document.label"/>
+            <span>{{ document.label }}</span>
+          </button>
         </div>
-        <div class="empty-panel" *ngIf="!field('gst_attachment') && !field('pan_attachment') && !field('bank_proof') && !field('mou_file') && !field('shop_photo')">No KYC documents found</div>
+        <div class="empty-panel" *ngIf="kycDocuments.length === 0">No KYC documents found</div>
       </div>
 
       <div class="tab-body" *ngIf="activeTab !== 'details' && activeTab !== 'kyc'">
@@ -118,4 +117,18 @@
       </div>
     </div>
   </ng-container>
+
+  <div class="image-modal-overlay" *ngIf="selectedKycDocument" (click)="closeKycPreview()">
+    <div class="image-modal" (click)="$event.stopPropagation()">
+      <div class="image-modal-header">
+        <h3>{{ selectedKycDocument.label }}</h3>
+        <button type="button" class="image-modal-close" (click)="closeKycPreview()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="image-modal-body">
+        <img [src]="selectedKycDocument.url" [alt]="selectedKycDocument.label"/>
+      </div>
+    </div>
+  </div>
 </div>

@@ -1,0 +1,195 @@
+<div class="scheme-page">
+  <div class="toast-message" [class.show]="toast.visible" [class.error]="toast.type === 'error'">{{ toast.message }}</div>
+
+  <div class="page-heading">
+    <div class="page-icon"><span class="material-icons">card_membership</span></div>
+    <h2 class="page-title">Scheme Creation</h2>
+  </div>
+
+  <div class="filter-panel">
+    <div class="filter-field">
+      <label>Status</label>
+      <select [(ngModel)]="selectedStatus">
+        <option value="">All</option>
+        <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button type="button" class="mini-btn" (click)="applyFilters()">Filter</button>
+      <button type="button" class="mini-btn light" (click)="clearFilters()">Clear</button>
+    </div>
+  </div>
+
+  <div class="table-toolbar">
+    <div class="toolbar-left">
+      <label>Show <input type="number" [(ngModel)]="showEntries" class="entries-input" min="5" max="100"/> entries</label>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn-icon-round add-btn" title="Add" (click)="openCreate()" *ngIf="canCreate"><span class="material-icons">add</span></button>
+      <div class="search-group">
+        <label>Search:</label>
+        <input type="text" [(ngModel)]="searchQuery" class="table-search"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="loading-bar" *ngIf="loading">Loading schemes...</div>
+    <div class="error-bar" *ngIf="errorMessage">{{ errorMessage }}</div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Action</th>
+            <th>Scheme Name</th>
+            <th>Code</th>
+            <th>Tag</th>
+            <th>Customer Type</th>
+            <th>Area</th>
+            <th>Type / Basis</th>
+            <th>Period</th>
+            <th>Status</th>
+            <th>Created By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let scheme of pagedSchemes; let index = index">
+            <td>{{ index + 1 }}</td>
+            <td>
+              <div class="action-btns">
+                <button class="btn-edit" title="Edit" (click)="openEdit(scheme)" *ngIf="canEdit"><span class="material-icons">edit</span></button>
+                <button class="btn-danger" title="Delete" (click)="deleteScheme(scheme)" *ngIf="canDelete"><span class="material-icons">close</span></button>
+              </div>
+            </td>
+            <td class="name-cell">{{ scheme.schemeName }}</td>
+            <td>{{ scheme.schemeCode }}</td>
+            <td><span class="tag-pill">{{ scheme.schemeTag }}</span></td>
+            <td>{{ scheme.customerType }}</td>
+            <td class="area-cell" [title]="scheme.areaDisplay">{{ scheme.areaDisplay }}</td>
+            <td>{{ scheme.schemeType }} / {{ scheme.basedOn }}</td>
+            <td>{{ formatDate(scheme.startDate) }} - {{ formatDate(scheme.endDate) }}</td>
+            <td><span class="status-pill" [class.live]="scheme.status === 'Live'" [class.ended]="scheme.status === 'Ended'">{{ scheme.status }}</span></td>
+            <td>{{ scheme.createdByName }}</td>
+          </tr>
+          <tr *ngIf="!loading && pagedSchemes.length === 0">
+            <td colspan="11" class="empty-row">No schemes found</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer">
+      <span class="entries-info">Showing {{ pagedSchemes.length ? 1 : 0 }} to {{ pagedSchemes.length }} of {{ filteredSchemes.length }} entries</span>
+      <div class="pagination"><button class="page-btn">PREV</button><button class="page-btn active">1</button><button class="page-btn">NEXT</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-icon"><span class="material-icons">card_membership</span></div>
+    <div class="modal-header-row">
+      <h3>{{ form.id ? 'Edit Scheme' : 'Add Scheme' }}</h3>
+      <button class="modal-close-btn" (click)="closeModal()" [disabled]="saving"><span class="material-icons">close</span></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section">
+        <div class="section-title">Scheme Details</div>
+        <div class="form-grid">
+          <div class="modal-field">
+            <label>Scheme Name <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.schemeName" (ngModelChange)="scheduleGenerateCode()"/>
+          </div>
+          <div class="modal-field code-field">
+            <label>Scheme Code <span class="req">*</span></label>
+            <input type="text" [(ngModel)]="form.schemeCode" [placeholder]="generatingCode ? 'Generating...' : ''" disabled/>
+          </div>
+          <div class="modal-field">
+            <label>Scheme Tag <span class="req">*</span></label>
+            <select [(ngModel)]="form.schemeTag" (ngModelChange)="scheduleGenerateCode()">
+              <option *ngFor="let tag of schemeTags" [value]="tag">{{ tag }}</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Customer Type <span class="req">*</span></label>
+            <select [(ngModel)]="form.customerType">
+              <option *ngFor="let type of customerTypes" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Start Date <span class="req">*</span></label>
+            <input type="date" [(ngModel)]="form.startDate"/>
+          </div>
+          <div class="modal-field">
+            <label>End Date <span class="req">*</span></label>
+            <input type="date" [(ngModel)]="form.endDate"/>
+          </div>
+          <div class="modal-field">
+            <label>Scheme Type</label>
+            <input type="text" [(ngModel)]="form.schemeType" disabled/>
+          </div>
+          <div class="modal-field">
+            <label>Based On <span class="req">*</span></label>
+            <select [(ngModel)]="form.basedOn" (ngModelChange)="scheduleGenerateCode()">
+              <option *ngFor="let option of basedOnOptions" [value]="option">{{ option }}</option>
+            </select>
+          </div>
+          <div class="modal-field">
+            <label>Status</label>
+            <select [(ngModel)]="form.status">
+              <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+            </select>
+          </div>
+          <div class="modal-field full-field">
+            <label>Description</label>
+            <textarea rows="3" [(ngModel)]="form.schemeDescription"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">Assign Area</div>
+        <div class="form-grid">
+          <div class="modal-field">
+            <label>Area Scope <span class="req">*</span></label>
+            <select [(ngModel)]="form.areaScope" (ngModelChange)="changeAreaScope()">
+              <option *ngFor="let scope of areaScopes" [value]="scope">{{ scope }}</option>
+            </select>
+          </div>
+          <div class="modal-field" *ngIf="form.areaScope !== 'All'">
+            <label>{{ form.areaScope }} Values <span class="req">*</span></label>
+            <select multiple [(ngModel)]="form.areaValues" class="multi-select">
+              <option *ngFor="let option of areaOptions" [ngValue]="option.name">{{ option.name }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <div class="section-title">Slab Configuration</div>
+        <div class="slab-table">
+          <div class="slab-row slab-head">
+            <span>Tier Name</span>
+            <span>Value From</span>
+            <span>Value To</span>
+            <span>{{ rewardLabel() }}</span>
+            <span></span>
+          </div>
+          <div class="slab-row" *ngFor="let slab of form.slabs; let index = index">
+            <input type="text" [(ngModel)]="slab.tierName" placeholder="Silver"/>
+            <input type="number" [(ngModel)]="slab.valueFrom" min="0"/>
+            <input type="number" [(ngModel)]="slab.valueTo" min="0" placeholder="No limit"/>
+            <input type="number" [(ngModel)]="slab.rewardValue" min="0" step="0.01"/>
+            <button type="button" class="btn-danger" title="Remove" (click)="removeSlab(index)" [disabled]="form.slabs.length === 1"><span class="material-icons">close</span></button>
+          </div>
+        </div>
+        <button type="button" class="mini-btn light add-slab-btn" (click)="addSlab()">Add Slab</button>
+      </div>
+
+      <div class="modal-actions">
+        <button class="mini-btn light" (click)="submit('Draft')" [disabled]="saving">{{ saving ? 'Saving...' : 'Save Draft' }}</button>
+        <button class="btn-submit-modal" (click)="submit('Live')" [disabled]="saving">{{ saving ? 'Saving...' : 'Publish Scheme' }}</button>
+      </div>
+    </div>
+  </div>
+</div>

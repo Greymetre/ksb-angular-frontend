@@ -19,14 +19,14 @@
     <div class="toolbar-right">
       <input #fileInput type="file" class="file-input" accept=".xlsx,.xls,.csv" (change)="upload($event)"/>
       <div class="icon-action-group">
-        <button class="btn-icon-round" title="Upload" (click)="triggerUpload()" *ngIf="canUpload" [disabled]="uploading">
-          <span class="material-icons">cloud_upload</span>
+        <button class="btn-icon-round" [title]="uploading ? 'Importing...' : 'Upload'" (click)="triggerUpload()" *ngIf="canUpload" [disabled]="uploading">
+          <span class="material-icons">{{ uploading ? 'hourglass_top' : 'cloud_upload' }}</span>
         </button>
-        <button class="btn-icon-round" title="Download" (click)="exportItems()" *ngIf="canDownload">
-          <span class="material-icons">cloud_download</span>
+        <button class="btn-icon-round" [title]="exporting ? 'Exporting...' : 'Download'" (click)="exportItems()" *ngIf="canDownload" [disabled]="exporting">
+          <span class="material-icons">{{ exporting ? 'hourglass_top' : 'cloud_download' }}</span>
         </button>
-        <button class="btn-icon-round" title="Template" (click)="downloadTemplate()" *ngIf="canTemplate">
-          <span class="material-icons">description</span>
+        <button class="btn-icon-round" [title]="templating ? 'Preparing template...' : 'Template'" (click)="downloadTemplate()" *ngIf="canTemplate" [disabled]="templating">
+          <span class="material-icons">{{ templating ? 'hourglass_top' : 'description' }}</span>
         </button>
         <button class="btn-icon-round add-btn" [title]="'Add ' + config.singular" (click)="openCreateModal()" *ngIf="canCreate">
           <span class="material-icons">add</span>
@@ -136,7 +136,7 @@
           <label>{{ config.parent.label }} <span class="req">*</span></label>
           <select [(ngModel)]="form[config.parent.field]" [disabled]="optionsLoading">
             <option [ngValue]="null">{{ optionsLoading ? 'Loading...' : 'Select ' + config.parent.label }}</option>
-            <option *ngFor="let option of parentOptions" [ngValue]="option.id">{{ parentDisplay(option) }}</option>
+            <option *ngFor="let option of parentOptions" [ngValue]="option.id">{{ parentDisplay(option) | firstCaps }}</option>
           </select>
         </div>
 

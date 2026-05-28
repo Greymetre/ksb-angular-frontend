@@ -18,8 +18,8 @@
     </div>
     <div class="toolbar-right">
       <div class="icon-action-group">
-        <button class="btn-icon-round" title="Download" (click)="exportItems()" *ngIf="canExport">
-          <span class="material-icons">cloud_download</span>
+        <button class="btn-icon-round" [title]="exporting ? 'Exporting...' : 'Download'" (click)="exportItems()" *ngIf="canExport" [disabled]="exporting">
+          <span class="material-icons">{{ exporting ? 'hourglass_top' : 'cloud_download' }}</span>
         </button>
         <button class="btn-icon-round add-btn" [title]="'Add ' + config.singular" (click)="openCreateModal()" *ngIf="canCreate">
           <span class="material-icons">add</span>
@@ -66,7 +66,7 @@
               <span class="slider"></span>
             </label>
           </td>
-          <td class="name-cell">{{ displayName(item) }}</td>
+          <td class="name-cell">{{ displayName(item) | firstCaps }}</td>
           <td *ngIf="config.hasBranchCode">{{ item.branchCode }}</td>
           <td *ngIf="config.hasWarehouse">{{ item.warehouseId }}</td>
           <td>{{ item.createdByName || item.createdBy }}</td>

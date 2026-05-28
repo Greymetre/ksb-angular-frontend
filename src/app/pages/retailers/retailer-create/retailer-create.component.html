@@ -50,14 +50,14 @@
         <label>Distributor Name <span class="req">*</span></label>
         <select formControlName="distributorName">
           <option value="">SELECT DOMESTIC DISTRIBUTOR</option>
-          <option *ngFor="let d of distributors" [value]="d">{{ d }}</option>
+          <option *ngFor="let d of distributors" [value]="d">{{ d | firstCaps }}</option>
         </select>
       </div>
       <div class="form-col">
         <label>Agri Distributor <span class="req">*</span></label>
         <select formControlName="agriDistributor">
           <option value="">SELECT AGRI DISTRIBUTOR</option>
-          <option *ngFor="let d of agriDistributors" [value]="d">{{ d }}</option>
+          <option *ngFor="let d of agriDistributors" [value]="d">{{ d | firstCaps }}</option>
         </select>
       </div>
     </div>
@@ -71,7 +71,7 @@
         <label>Beat <span class="req">*</span></label>
         <select formControlName="beat">
           <option value="">SELECT BEAT</option>
-          <option *ngFor="let b of beats" [value]="b">{{ b }}</option>
+          <option *ngFor="let b of beats" [value]="b">{{ b | firstCaps }}</option>
         </select>
       </div>
     </div>
@@ -88,14 +88,14 @@
         <label>State <span class="req">*</span></label>
         <select formControlName="state">
           <option value="">SELECT STATE</option>
-          <option *ngFor="let s of states" [value]="s">{{ s }}</option>
+          <option *ngFor="let s of states" [value]="s">{{ s | firstCaps }}</option>
         </select>
       </div>
       <div class="form-col">
         <label>District</label>
         <select formControlName="district">
           <option value="">SELECT DISTRICT</option>
-          <option *ngFor="let d of districts" [value]="d">{{ d }}</option>
+          <option *ngFor="let d of districts" [value]="d">{{ d | firstCaps }}</option>
         </select>
       </div>
     </div>
@@ -152,7 +152,7 @@
         <label>Bank Account Type</label>
         <select formControlName="bankAccountType">
           <option value="">SELECT ACCOUNT TYPE</option>
-          <option *ngFor="let t of bankAccountTypes" [value]="t">{{ t }}</option>
+          <option *ngFor="let t of bankAccountTypes" [value]="t">{{ t | firstCaps }}</option>
         </select>
       </div>
       <div class="form-col">

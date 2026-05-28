@@ -47,6 +47,7 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
   searchQuery = '';
   loading = false;
   saving = false;
+  exporting = false;
   showModal = false;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
@@ -236,7 +237,12 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
   }
 
   exportItems(): void {
-    this.masterService.export(this.config).subscribe({
+    this.exporting = true;
+    this.showToast('Exporting...', 'success');
+    this.masterService.export(this.config).pipe(finalize(() => {
+      this.exporting = false;
+      this.refreshView();
+    })).subscribe({
       next: blob => this.downloadBlob(blob, this.config.fileName),
       error: error => this.showToast(error.message, 'error')
     });

@@ -63,6 +63,8 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
   optionsLoading = false;
   saving = false;
   uploading = false;
+  exporting = false;
+  templating = false;
   showModal = false;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
@@ -291,6 +293,7 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
     if (!file) return;
 
     this.uploading = true;
+    this.showToast('Importing...', 'success');
     this.addressService.upload(this.config, file).pipe(
       finalize(() => {
         this.uploading = false;
@@ -307,14 +310,24 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
   }
 
   exportItems(): void {
-    this.addressService.export(this.config).subscribe({
+    this.exporting = true;
+    this.showToast('Exporting...', 'success');
+    this.addressService.export(this.config).pipe(finalize(() => {
+      this.exporting = false;
+      this.refreshView();
+    })).subscribe({
       next: blob => this.downloadBlob(blob, this.config.fileName),
       error: error => this.showToast(error.message, 'error')
     });
   }
 
   downloadTemplate(): void {
-    this.addressService.template(this.config).subscribe({
+    this.templating = true;
+    this.showToast('Preparing template...', 'success');
+    this.addressService.template(this.config).pipe(finalize(() => {
+      this.templating = false;
+      this.refreshView();
+    })).subscribe({
       next: blob => this.downloadBlob(blob, `${this.config.path}-template.xlsx`),
       error: error => this.showToast(error.message, 'error')
     });

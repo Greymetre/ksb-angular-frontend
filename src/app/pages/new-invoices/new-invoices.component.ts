@@ -22,6 +22,7 @@ interface InvoiceFormModel {
   invoiceDate: string;
   amount: number | null;
   points: number;
+  attachment: string | null;
 }
 
 interface ApprovalDialogModel {
@@ -44,15 +45,18 @@ export class NewInvoicesComponent implements OnInit {
   filter: NewInvoiceFilter = {};
   summary: NewInvoiceSummary = this.emptySummary();
   form: InvoiceFormModel = this.emptyForm();
+  selectedAttachmentFile: File | null = null;
   approvalDialog: ApprovalDialogModel = this.emptyApprovalDialog();
   selectedInvoice: NewInvoiceItem | null = null;
   selectedRetailer: RetailerOption | null = null;
   showEntries = 10;
   loading = false;
   saving = false;
+  exporting = false;
   showModal = false;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
+  private readonly backendOrigin = this.resolveBackendOrigin();
 
   readonly approvalStatusOptions: SelectOption[] = [
     { id: '', label: 'All Status' },
@@ -121,6 +125,10 @@ export class NewInvoicesComponent implements OnInit {
     return this.authService.hasPermission('new_invoice_reject');
   }
 
+  get canExport(): boolean {
+    return this.authService.hasAnyPermission(['new_invoice_export', 'new_invoice_access']);
+  }
+
   loadInvoices(): void {
     this.loading = true;
     this.errorMessage = '';
@@ -186,6 +194,7 @@ export class NewInvoicesComponent implements OnInit {
   openCreateModal(): void {
     this.form = this.emptyForm();
     this.selectedRetailer = null;
+    this.selectedAttachmentFile = null;
     this.showModal = true;
     this.refreshView();
   }
@@ -201,8 +210,10 @@ export class NewInvoicesComponent implements OnInit {
       invoiceNumber: invoice.invoiceNumber,
       invoiceDate: this.toDateInput(invoice.invoiceDate),
       amount: invoice.amount,
-      points: 0
+      points: 0,
+      attachment: invoice.attachment || null
     };
+    this.selectedAttachmentFile = null;
     this.selectedRetailer = this.retailers.find(retailer => retailer.id === invoice.secondaryCustomerId) || {
       id: invoice.secondaryCustomerId,
       ownerName: invoice.customerName,
@@ -233,8 +244,8 @@ export class NewInvoicesComponent implements OnInit {
 
     this.saving = true;
     const request = this.form.id
-      ? this.newInvoiceService.update(this.form.id, payload)
-      : this.newInvoiceService.create(payload);
+      ? this.newInvoiceService.update(this.form.id, payload, this.selectedAttachmentFile)
+      : this.newInvoiceService.create(payload, this.selectedAttachmentFile);
 
     request.pipe(finalize(() => {
       this.saving = false;
@@ -315,6 +326,17 @@ export class NewInvoicesComponent implements OnInit {
     this.loadInvoices();
   }
 
+  exportInvoices(): void {
+    this.exporting = true;
+    this.newInvoiceService.export(this.filter).pipe(finalize(() => {
+      this.exporting = false;
+      this.refreshView();
+    })).subscribe({
+      next: blob => this.downloadBlob(blob, `new-invoices-${this.dateStamp()}.xlsx`),
+      error: error => this.showToast(error.message, 'error')
+    });
+  }
+
   onStatusFilterChange(value: number | string | null): void {
     this.filter.approval_status = value === '' || value === null ? null : Number(value);
     this.loadInvoices();
@@ -359,6 +381,29 @@ export class NewInvoicesComponent implements OnInit {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(value || 0);
   }
 
+  schemeDisplay(invoice: NewInvoiceItem): string {
+    return invoice.schemeName ? `${invoice.schemeName}${invoice.schemeCode ? ' (' + invoice.schemeCode + ')' : ''}` : '-';
+  }
+
+  onAttachmentChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedAttachmentFile = input.files?.[0] ?? null;
+    this.refreshView();
+  }
+
+  attachmentLabel(): string {
+    return this.selectedAttachmentFile?.name || this.form.attachment || 'No file selected';
+  }
+
+  mediaUrl(value?: string | null): string {
+    if (!value) return '';
+    const path = value.trim();
+    if (!path) return '';
+    if (/^(https?:)?\/\//i.test(path) || path.startsWith('data:') || path.startsWith('blob:')) return path;
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${this.backendOrigin}${cleanPath}`;
+  }
+
   private buildPayload(): NewInvoicePayload | null {
     if (!this.form.secondaryCustomerId) {
       this.showToast('Retailer is required.', 'error');
@@ -381,7 +426,8 @@ export class NewInvoicesComponent implements OnInit {
       invoice_number: this.form.invoiceNumber.trim(),
       invoice_date: this.form.invoiceDate,
       amount: Number(this.form.amount),
-      points: 0
+      points: 0,
+      attachment: this.form.attachment
     };
   }
 
@@ -399,7 +445,8 @@ export class NewInvoicesComponent implements OnInit {
       invoiceNumber: '',
       invoiceDate: new Date().toISOString().slice(0, 10),
       amount: null,
-      points: 0
+      points: 0,
+      attachment: null
     };
   }
 
@@ -439,5 +486,24 @@ export class NewInvoicesComponent implements OnInit {
 
   private refreshView(): void {
     this.cdr.detectChanges();
+  }
+
+  private downloadBlob(blob: Blob, fileName: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  private dateStamp(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  private resolveBackendOrigin(): string {
+    const { protocol, hostname, port } = window.location;
+    if (port === '4200') return `${protocol}//${hostname === 'localhost' ? '127.0.0.1' : hostname}:5172`;
+    return window.location.origin;
   }
 }

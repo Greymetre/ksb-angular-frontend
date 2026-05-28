@@ -1,11 +1,15 @@
 .layout-body {
   display: flex;
   padding-top: 70px;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 .main-content {
   margin-left: 280px;
-  flex: 1;
+  width: calc(100% - 280px);
+  min-width: 0;
   min-height: calc(100vh - 70px);
   background: #e8edf5;
+  overflow-x: hidden;
   padding: 24px;
 }

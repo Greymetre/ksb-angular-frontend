@@ -59,8 +59,8 @@
               <img *ngIf="c.categoryImage" [src]="c.categoryImage" class="cat-img"/>
             </div>
           </td>
-          <td>{{ c.categoryName }}</td>
-          <td>{{ c.createdBy }}</td>
+          <td>{{ c.categoryName | firstCaps }}</td>
+          <td>{{ c.createdBy | firstCaps }}</td>
           <td>{{ c.createdAt }}</td>
         </tr>
         <tr *ngIf="filtered.length === 0">

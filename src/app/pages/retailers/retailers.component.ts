@@ -25,14 +25,14 @@ export class RetailersComponent {
   searchQuery = '';
 
   filterForm = {
-    ownerName: 'ALL OWNERS',
-    shopName: 'ALL SHOPS',
-    mobileNumber: 'ALL MOBILES',
-    beat: 'ALL BEATS',
-    state: 'ALL STATES',
-    city: 'ALL CITIES',
-    status: 'ALL',
-    active: 'ALL',
+    ownerName: 'All Owners',
+    shopName: 'All Shops',
+    mobileNumber: 'All Mobiles',
+    beat: 'All Beats',
+    state: 'All States',
+    city: 'All Cities',
+    status: 'All',
+    active: 'All',
     designation: 'ASR, DSR',
     startDate: '',
     endDate: ''

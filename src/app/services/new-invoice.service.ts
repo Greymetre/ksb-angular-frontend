@@ -17,6 +17,15 @@ export interface NewInvoiceItem {
   invoiceDate: string;
   amount: number;
   points: number;
+  schemeId?: number | null;
+  schemeName?: string | null;
+  schemeCode?: string | null;
+  schemeTag?: string | null;
+  schemeBasedOn?: string | null;
+  schemeRewardValue?: number | null;
+  schemePoints: number;
+  schemeHintMessage?: string | null;
+  attachment?: string | null;
   approvalStatus: number;
   approvalStatusLabel: string;
   approvalRemark?: string | null;
@@ -45,6 +54,7 @@ export interface NewInvoicePayload {
   invoice_date: string;
   amount: number;
   points: number;
+  attachment?: string | null;
 }
 
 export interface NewInvoiceFilter {
@@ -120,15 +130,15 @@ export class NewInvoiceService {
     );
   }
 
-  create(payload: NewInvoicePayload): Observable<string> {
-    return this.http.post<ApiResponse>(this.baseUrl, payload, { headers: this.authHeaders() }).pipe(
+  create(payload: NewInvoicePayload, file?: File | null): Observable<string> {
+    return this.http.post<ApiResponse>(this.baseUrl, this.toFormData(payload, file), { headers: this.authHeaders() }).pipe(
       map(response => this.responseMessage(response) || 'Invoice created successfully'),
       catchError(error => this.handleError(error))
     );
   }
 
-  update(id: number, payload: NewInvoicePayload): Observable<string> {
-    return this.http.put<ApiResponse>(`${this.baseUrl}/${id}`, payload, { headers: this.authHeaders() }).pipe(
+  update(id: number, payload: NewInvoicePayload, file?: File | null): Observable<string> {
+    return this.http.put<ApiResponse>(`${this.baseUrl}/${id}`, this.toFormData(payload, file), { headers: this.authHeaders() }).pipe(
       map(response => this.responseMessage(response) || 'Invoice updated successfully'),
       catchError(error => this.handleError(error))
     );
@@ -139,6 +149,14 @@ export class NewInvoiceService {
       map(response => this.responseMessage(response) || 'Invoice deleted successfully'),
       catchError(error => this.handleError(error))
     );
+  }
+
+  export(filter: NewInvoiceFilter): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/export`, {
+      headers: this.authHeaders(),
+      params: this.filterParams(filter),
+      responseType: 'blob'
+    }).pipe(catchError(error => this.handleError(error)));
   }
 
   approve(id: number, level: 'ss' | 'sales' | 'ho', remark = ''): Observable<string> {
@@ -168,6 +186,22 @@ export class NewInvoiceService {
     return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
+  private toFormData(payload: NewInvoicePayload, file?: File | null): FormData {
+    const form = new FormData();
+    this.append(form, 'secondary_customer_id', payload.secondary_customer_id);
+    this.append(form, 'invoice_number', payload.invoice_number);
+    this.append(form, 'invoice_date', payload.invoice_date);
+    this.append(form, 'amount', payload.amount);
+    this.append(form, 'points', payload.points);
+    this.append(form, 'attachment', payload.attachment);
+    if (file) form.append('attachment_file', file);
+    return form;
+  }
+
+  private append(form: FormData, key: string, value: unknown): void {
+    if (value !== undefined && value !== null && value !== '') form.append(key, String(value));
+  }
+
   private normalizeInvoice(value: unknown): NewInvoiceItem {
     const row = this.asRecord(value);
     return {
@@ -183,6 +217,15 @@ export class NewInvoiceService {
       invoiceDate: this.readString(row['invoice_date'] ?? row['invoiceDate']),
       amount: this.readNumber(row['amount']),
       points: this.readNumber(row['points']),
+      schemeId: this.readNumber(row['scheme_id'] ?? row['schemeId']) || null,
+      schemeName: this.readNullableString(row['scheme_name'] ?? row['schemeName']),
+      schemeCode: this.readNullableString(row['scheme_code'] ?? row['schemeCode']),
+      schemeTag: this.readNullableString(row['scheme_tag'] ?? row['schemeTag']),
+      schemeBasedOn: this.readNullableString(row['scheme_based_on'] ?? row['schemeBasedOn']),
+      schemeRewardValue: this.nullableNumber(row['scheme_reward_value'] ?? row['schemeRewardValue']),
+      schemePoints: this.readNumber(row['scheme_points'] ?? row['schemePoints']),
+      schemeHintMessage: this.readNullableString(row['scheme_hint_message'] ?? row['schemeHintMessage']),
+      attachment: this.readNullableString(row['attachment']),
       approvalStatus: this.readNumber(row['approval_status'] ?? row['approvalStatus']),
       approvalStatusLabel: this.readString(row['approval_status_label'] ?? row['approvalStatusLabel']) || 'Pending',
       approvalRemark: this.readNullableString(row['approval_remark'] ?? row['approvalRemark']),
@@ -283,6 +326,11 @@ export class NewInvoiceService {
       return Number.isFinite(parsed) ? parsed : 0;
     }
     return 0;
+  }
+
+  private nullableNumber(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    return this.readNumber(value);
   }
 
   private readString(value: unknown): string {

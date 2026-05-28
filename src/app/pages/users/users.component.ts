@@ -3,6 +3,7 @@ import { timeout } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { User, UserFilters, UserOption, UserPayload, UserService } from '../../services/user.service';
+import { firstCaps } from '../../shared/pipes/first-caps.pipe';
 
 interface UserFormModel {
   id: number | null;
@@ -56,7 +57,7 @@ export class UsersComponent implements OnInit {
 
   showEntries = 10;
   searchQuery = '';
-  selectedUserType = '';
+  selectedUserType = 'employee';
   selectedActive = '';
   selectedDivisionId: number | null = null;
   selectedBranchId = '';
@@ -66,6 +67,8 @@ export class UsersComponent implements OnInit {
   optionsLoading = false;
   saving = false;
   uploading = false;
+  exporting = false;
+  templating = false;
   showUserModal = false;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
@@ -212,7 +215,7 @@ export class UsersComponent implements OnInit {
   }
 
   clearFilters(): void {
-    this.selectedUserType = '';
+    this.selectedUserType = 'employee';
     this.selectedActive = '';
     this.selectedDivisionId = null;
     this.selectedBranchId = '';
@@ -354,6 +357,7 @@ export class UsersComponent implements OnInit {
     if (!file) return;
 
     this.uploading = true;
+    this.showToast('Importing...', 'success');
     this.userService.uploadUsers(file).pipe(
       finalize(() => {
         this.uploading = false;
@@ -373,14 +377,24 @@ export class UsersComponent implements OnInit {
   }
 
   exportUsers(): void {
-    this.userService.downloadUsers(this.currentFilters()).subscribe({
+    this.exporting = true;
+    this.showToast('Exporting...', 'success');
+    this.userService.downloadUsers(this.currentFilters()).pipe(finalize(() => {
+      this.exporting = false;
+      this.refreshView();
+    })).subscribe({
       next: blob => this.downloadBlob(blob, `users-${this.dateStamp()}.xlsx`),
       error: error => this.showToast(error.message, 'error')
     });
   }
 
   downloadTemplate(): void {
-    this.userService.downloadTemplate().subscribe({
+    this.templating = true;
+    this.showToast('Preparing template...', 'success');
+    this.userService.downloadTemplate().pipe(finalize(() => {
+      this.templating = false;
+      this.refreshView();
+    })).subscribe({
       next: blob => this.downloadBlob(blob, 'users-template.xlsx'),
       error: error => this.showToast(error.message, 'error')
     });
@@ -499,7 +513,7 @@ export class UsersComponent implements OnInit {
 
   private selectionLabel(options: UserOption[], emptyLabel: string, countLabel: string): string {
     if (!options.length) return emptyLabel;
-    if (options.length === 1) return options[0].name;
+    if (options.length === 1) return firstCaps(options[0].name);
     return `${options.length} ${countLabel}`;
   }
 

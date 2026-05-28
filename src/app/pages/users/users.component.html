@@ -16,7 +16,6 @@
     <div class="filter-field">
       <label>User Type</label>
       <select [(ngModel)]="selectedUserType">
-        <option value="">All</option>
         <option value="employee">Employee</option>
         <option value="customer">Customer</option>
       </select>
@@ -33,21 +32,21 @@
       <label>Division</label>
       <select [(ngModel)]="selectedDivisionId">
         <option [ngValue]="null">All</option>
-        <option *ngFor="let division of divisions" [ngValue]="division.id">{{ division.name }}</option>
+        <option *ngFor="let division of divisions" [ngValue]="division.id">{{ division.name | firstCaps }}</option>
       </select>
     </div>
     <div class="filter-field">
       <label>Branch</label>
       <select [(ngModel)]="selectedBranchId">
         <option value="">All</option>
-        <option *ngFor="let branch of branches" [value]="branch.id">{{ branch.name }}</option>
+        <option *ngFor="let branch of branches" [value]="branch.id">{{ branch.name | firstCaps }}</option>
       </select>
     </div>
     <div class="filter-field">
       <label>Department</label>
       <select [(ngModel)]="selectedDepartmentId">
         <option [ngValue]="null">All</option>
-        <option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name }}</option>
+        <option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name | firstCaps }}</option>
       </select>
     </div>
     <div class="filter-actions">
@@ -63,14 +62,14 @@
     <div class="toolbar-right">
       <div class="icon-action-group">
         <input #fileInput type="file" class="hidden-file" accept=".xlsx,.xls,.csv" (change)="uploadUsers($event)"/>
-        <button class="btn-icon-round" title="Upload Users" (click)="triggerUpload()" [disabled]="uploading || !canUpload" *ngIf="canUpload">
-          <span class="material-icons">cloud_upload</span>
+        <button class="btn-icon-round" [title]="uploading ? 'Importing...' : 'Upload Users'" (click)="triggerUpload()" [disabled]="uploading || !canUpload" *ngIf="canUpload">
+          <span class="material-icons">{{ uploading ? 'hourglass_top' : 'cloud_upload' }}</span>
         </button>
-        <button class="btn-icon-round" title="Export Users" (click)="exportUsers()" [disabled]="!canExport" *ngIf="canExport">
-          <span class="material-icons">cloud_download</span>
+        <button class="btn-icon-round" [title]="exporting ? 'Exporting...' : 'Export Users'" (click)="exportUsers()" [disabled]="exporting || !canExport" *ngIf="canExport">
+          <span class="material-icons">{{ exporting ? 'hourglass_top' : 'cloud_download' }}</span>
         </button>
-        <button class="btn-icon-round" title="Download Template" (click)="downloadTemplate()" [disabled]="!canTemplate" *ngIf="canTemplate">
-          <span class="material-icons">text_snippet</span>
+        <button class="btn-icon-round" [title]="templating ? 'Preparing template...' : 'Download Template'" (click)="downloadTemplate()" [disabled]="templating || !canTemplate" *ngIf="canTemplate">
+          <span class="material-icons">{{ templating ? 'hourglass_top' : 'text_snippet' }}</span>
         </button>
         <button class="btn-icon-round add-btn" title="Add User" (click)="openCreateModal()" *ngIf="canCreate">
           <span class="material-icons">add</span>
@@ -216,7 +215,7 @@
             </button>
             <div class="selected-chips" *ngIf="selectedBranches.length">
               <span class="selected-chip" *ngFor="let branch of selectedBranches">
-                {{ branch.name }}
+                {{ branch.name | firstCaps }}
                 <button type="button" title="Remove" (click)="removeSelection('branches', branch.id)">
                   <span class="material-icons">close</span>
                 </button>
@@ -233,7 +232,7 @@
               </div>
               <button type="button" class="multi-select-option" [class.selected]="hasSelection('branches', branch.id)" *ngFor="let branch of filteredModalBranches" (click)="toggleSelection('branches', branch.id)">
                 <span class="option-check"><span class="material-icons" *ngIf="hasSelection('branches', branch.id)">check</span></span>
-                <span class="option-name">{{ branch.name }}</span>
+                <span class="option-name">{{ branch.name | firstCaps }}</span>
               </button>
               <div class="dropdown-empty" *ngIf="filteredModalBranches.length === 0">No branches found</div>
             </div>
@@ -249,7 +248,7 @@
             </button>
             <div class="selected-chips" *ngIf="selectedRoles.length">
               <span class="selected-chip" *ngFor="let role of selectedRoles">
-                {{ role.name }}
+                {{ role.name | firstCaps }}
                 <button type="button" title="Remove" (click)="removeSelection('roles', role.id)">
                   <span class="material-icons">close</span>
                 </button>
@@ -266,7 +265,7 @@
               </div>
               <button type="button" class="multi-select-option" [class.selected]="hasSelection('roles', role.id)" *ngFor="let role of filteredModalRoles" (click)="toggleSelection('roles', role.id)">
                 <span class="option-check"><span class="material-icons" *ngIf="hasSelection('roles', role.id)">check</span></span>
-                <span class="option-name">{{ role.name }}</span>
+                <span class="option-name">{{ role.name | firstCaps }}</span>
               </button>
               <div class="dropdown-empty" *ngIf="filteredModalRoles.length === 0">No roles found</div>
             </div>
@@ -279,28 +278,28 @@
           <label>Designation</label>
           <select [(ngModel)]="userForm.designationId">
             <option [ngValue]="null">Select designation</option>
-            <option *ngFor="let designation of designations" [ngValue]="designation.id">{{ designation.name }}</option>
+            <option *ngFor="let designation of designations" [ngValue]="designation.id">{{ designation.name | firstCaps }}</option>
           </select>
         </div>
         <div class="modal-field">
           <label>Division</label>
           <select [(ngModel)]="userForm.divisionId">
             <option [ngValue]="null">Select division</option>
-            <option *ngFor="let division of divisions" [ngValue]="division.id">{{ division.name }}</option>
+            <option *ngFor="let division of divisions" [ngValue]="division.id">{{ division.name | firstCaps }}</option>
           </select>
         </div>
         <div class="modal-field">
           <label>Department</label>
           <select [(ngModel)]="userForm.departmentId">
             <option [ngValue]="null">Select department</option>
-            <option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name }}</option>
+            <option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name | firstCaps }}</option>
           </select>
         </div>
         <div class="modal-field">
           <label>Reporting Person</label>
           <select [(ngModel)]="userForm.reportingId">
             <option [ngValue]="null">Select reporting person</option>
-            <option *ngFor="let reporting of reportings" [ngValue]="reporting.id">{{ reporting.name }}</option>
+            <option *ngFor="let reporting of reportings" [ngValue]="reporting.id">{{ reporting.name | firstCaps }}</option>
           </select>
         </div>
         <div class="modal-field">

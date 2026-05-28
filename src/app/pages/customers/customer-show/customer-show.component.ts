@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, timeout } from 'rxjs/operators';
 import { CustomerItem, CustomerService } from '../../../services/customer.service';
@@ -20,6 +20,11 @@ interface TabItem {
   icon: string;
 }
 
+interface KycDocument {
+  label: string;
+  url: string;
+}
+
 @Component({
   standalone: false,
   selector: 'app-customer-show',
@@ -31,6 +36,7 @@ export class CustomerShowComponent implements OnInit {
   loading = false;
   errorMessage = '';
   activeTab = 'details';
+  selectedKycDocument: KycDocument | null = null;
   private readonly backendOrigin = this.resolveBackendOrigin();
 
   readonly tabs: TabItem[] = [
@@ -48,7 +54,8 @@ export class CustomerShowComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private customerService: CustomerService
+    private customerService: CustomerService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -148,12 +155,22 @@ export class CustomerShowComponent implements OnInit {
     ]);
   }
 
+  get kycDocuments(): KycDocument[] {
+    return [
+      { label: 'GST', url: this.mediaUrl(this.firstField('gst_attachment', 'gst_image')) },
+      { label: 'PAN', url: this.mediaUrl(this.firstField('pan_attachment', 'pan_image')) },
+      { label: 'Aadhaar Card', url: this.mediaUrl(this.firstField('aadhar_attachment', 'aadhaar_attachment', 'adharcard')) },
+      { label: 'Blank Cheque / Passbook', url: this.mediaUrl(this.firstField('bank_proof', 'blank_cheque', 'passbook')) }
+    ].filter(document => !!document.url);
+  }
+
   get customRows(): InfoRow[] {
     if (!this.customer) return [];
     const visibleKeys = new Set([
       'legal_name', 'shop_name', 'owner_name', 'mobile_numbers', 'address1', 'address_line',
       'shipping_address', 'gst_number', 'pan_number', 'bank_account_number', 'profile_image',
-      'shop_image', 'shop_photo', 'gst_attachment', 'pan_attachment', 'bank_proof', 'mou_file',
+      'shop_image', 'shop_photo', 'gst_attachment', 'pan_attachment', 'aadhar_attachment', 'aadhaar_attachment',
+      'adharcard', 'bank_proof', 'blank_cheque', 'passbook', 'mou_file',
       'documents', 'country_id', 'state_id', 'district_id', 'city_id', 'pincode_id'
     ]);
     return Object.entries(this.customer.customFields)
@@ -166,10 +183,19 @@ export class CustomerShowComponent implements OnInit {
     this.errorMessage = '';
     this.customerService.get(id).pipe(
       timeout(20000),
-      finalize(() => this.loading = false)
+      finalize(() => {
+        this.loading = false;
+        this.refreshView();
+      })
     ).subscribe({
-      next: customer => this.customer = customer,
-      error: error => this.errorMessage = error.name === 'TimeoutError' ? 'Customer API request timed out.' : error.message
+      next: customer => {
+        this.customer = customer;
+        this.refreshView();
+      },
+      error: error => {
+        this.errorMessage = error.name === 'TimeoutError' ? 'Customer API request timed out.' : error.message;
+        this.refreshView();
+      }
     });
   }
 
@@ -181,8 +207,22 @@ export class CustomerShowComponent implements OnInit {
     this.activeTab = tab;
   }
 
+  openKycPreview(document: KycDocument): void {
+    this.selectedKycDocument = document;
+    this.refreshView();
+  }
+
+  closeKycPreview(): void {
+    this.selectedKycDocument = null;
+    this.refreshView();
+  }
+
   field(key: string): string {
     return this.customer?.customFields?.[key] || '';
+  }
+
+  firstField(...keys: string[]): string {
+    return keys.map(key => this.field(key)).find(value => !!value) || '';
   }
 
   mediaUrl(value?: string | null): string {
@@ -227,6 +267,10 @@ export class CustomerShowComponent implements OnInit {
 
   private titleCase(key: string): string {
     return key.replace(/_/g, ' ').replace(/\w\S*/g, text => text.charAt(0).toUpperCase() + text.slice(1).toLowerCase());
+  }
+
+  private refreshView(): void {
+    this.cdr.detectChanges();
   }
 
   private resolveBackendOrigin(): string {

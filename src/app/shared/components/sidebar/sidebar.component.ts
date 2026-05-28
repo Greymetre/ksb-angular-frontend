@@ -20,9 +20,9 @@ interface MenuItem {
 })
 export class SidebarComponent {
   private readonly allMenuItems: MenuItem[] = [
-    
+
     { label: 'Dashboard', icon: 'transcribe', route: '/dashboard', permission: 'dashboard_access' },
-    
+
     // {
     //   label: 'Lead Management',
     //   icon: 'leaderboard',
@@ -44,43 +44,30 @@ export class SidebarComponent {
     //     { label: 'Retailer', icon: 'storefront', route: '/retailers', permission: 'retailer_access' }
     //   ]
     // },
+    { label: 'Customers Management', icon: 'transcribe', route: '/customers', permission: 'customer_access' },
     {
-      label: 'Customers Master',
-      icon: 'diversity_3',
-      permission: 'customer_access',
+      label: 'Address Management',
+      icon: 'contact_mail',
+      permission: 'country_access',
       children: [
-        { label: 'Customers', icon: 'transcribe', route: '/customers', permission: 'customer_access' },
-        // { label: 'Upload Balance Confirmation', icon: 'balance', permission: 'customer_balance_confirmation_upload' },
-        // { label: 'Customer Type', icon: 'library_books', permission: 'customertype_access' },
-        // { label: 'Firm Type', icon: 'bubble_chart', permission: 'firmtype_access' },
-        // { label: 'Customers Login', icon: 'login', permission: 'customer_login' },
-        // { label: 'Customers Survey', icon: 'sentiment_satisfied', permission: 'survey_access' },
-        // { label: 'Survey Field', icon: 'text_rotation_angleup', permission: 'field_access' },
-        // { label: 'Market Intelligence', icon: 'key', permission: 'market_intelligence_access' },
-        {
-          label: 'Address Master',
-          icon: 'contact_mail',
-          permission: 'country_access',
-          children: [
-            { label: 'Country', icon: 'flag_circle', route: '/countries', permission: 'country_access' },
-            { label: 'State', icon: 'location_city', route: '/states', permission: 'state_access' },
-            { label: 'District', icon: 'balcony', route: '/districts', permission: 'district_access' },
-            { label: 'City', icon: 'apartment', route: '/cities', permission: 'city_access' },
-            { label: 'Pincode', icon: 'cabin', route: '/pincodes', permission: 'pincode_access' }
-          ]
-        },
-        // { label: 'Dealer / Distributor Appointment', icon: 'pending_actions', permission: 'dealer_appointment' }
+        { label: 'Country', icon: 'flag_circle', route: '/countries', permission: 'country_access' },
+        { label: 'State', icon: 'location_city', route: '/states', permission: 'state_access' },
+        { label: 'District', icon: 'balcony', route: '/districts', permission: 'district_access' },
+        { label: 'City', icon: 'apartment', route: '/cities', permission: 'city_access' },
+        { label: 'Pincode', icon: 'cabin', route: '/pincodes', permission: 'pincode_access' },
+        { label: 'City Assigned', icon: 'location_city', permission: 'city_assigned' }
       ]
     },
+
     {
       label: 'Product Management',
       icon: 'conveyor_belt',
       permission: 'product_access',
       children: [
-        { label: 'Categories', icon: 'category', route: '/categories', permission: 'category_access' },
-        { label: 'Segment', icon: 'subtitles', permission: 'subcategory_access' },
+        { label: 'Segment', icon: 'category', route: '/segments', permission: 'category_access' },
+        { label: 'Family', icon: 'account_tree', route: '/families', permission: 'subcategory_access' },
         // { label: 'Makers', icon: 'branding_watermark', permission: 'brand_access' },
-        { label: 'Products', icon: 'widgets', permission: 'product_access' },
+        { label: 'Products', icon: 'widgets', route: '/products', permission: 'product_access' },
         // { label: 'Units', icon: 'apartment', permission: 'unit_access' },
         // { label: 'Stock', icon: 'donut_small', permission: 'stock_access' },
         // { label: 'SAP Stock', icon: 'donut_small', permission: 'sap_stock_access' },
@@ -117,9 +104,9 @@ export class SidebarComponent {
       icon: 'family_restroom',
       permission: 'hr_access',
       children: [
-        { label: 'Attendance ', icon: 'report', permission: 'attendance_report' },
-        // { label: 'Attendance Summary Report', icon: 'summarize', permission: 'attendance_summary_report' },
-        // { label: 'Holidays', icon: 'holiday_village', permission: 'holiday_access' },
+        { label: 'Attendance Details', icon: 'report', permission: 'attendance_report' },
+        { label: 'Attendance Summary', icon: 'summarize', permission: 'attendance_summary_report' },
+        { label: 'Holidays', icon: 'holiday_village', permission: 'holiday_access' },
         { label: 'Leaves', icon: 'energy_savings_leaf', permission: 'leave_access' },
         // { label: 'Resignation', icon: 'outgoing_mail', permission: 'resignation_access' },
         // { label: 'Appraisal(PMS)', icon: 'verified_user', permission: 'appraisal_pms' },
@@ -140,20 +127,19 @@ export class SidebarComponent {
         { label: 'User Target', icon: 'loupe', permission: 'target_access' },
         { label: 'User Live Activity', icon: 'share_location', permission: 'user_location' },
         { label: 'Tours', icon: 'tour', permission: 'tours' },
-        { label: 'City Assigned', icon: 'location_city', permission: 'city_assigned' }
       ]
     },
     {
-      label: 'Account',
+      label: 'Account Management',
       icon: 'attribution',
       permission: 'account_access',
       children: [
         { label: 'Expenses Type', icon: 'dashboard', permission: 'expenses_type' },
         { label: 'Expense', icon: 'outlet', permission: 'expense_access' },
-        { label: 'Dealer Outstanding', icon: 'nature_people', permission: 'customer_outstanting' },
-        { label: 'Dealer Account Statement', icon: 'request_page', permission: 'dealer_account_statement' },
-        { label: 'Estimate', icon: 'request_quote', permission: 'estimate_access' },
-        { label: 'Invoice', icon: 'receipt_long', permission: 'invoice_access' },
+        // { label: 'Dealer Outstanding', icon: 'nature_people', permission: 'customer_outstanting' },
+        // { label: 'Dealer Account Statement', icon: 'request_page', permission: 'dealer_account_statement' },
+        // { label: 'Estimate', icon: 'request_quote', permission: 'estimate_access' },
+        // { label: 'Invoice', icon: 'receipt_long', permission: 'invoice_access' },
         // {
         //   label: 'Payments',
         //   icon: 'paid',
@@ -198,27 +184,27 @@ export class SidebarComponent {
       permission: 'order_access',
       children: [
         { label: 'Orders', icon: 'shopping_bag', permission: 'order_access' },
-        { label: 'Order Schemes', icon: 'flaky', permission: 'orderscheme' },
+        // { label: 'Order Schemes', icon: 'flaky', permission: 'orderscheme' },
         { label: 'Order Dispatch', icon: 'shopping_cart', permission: 'sale_access' }
       ]
     },
+    // {
+    //   label: 'Marketing',
+    //   icon: 'local_convenience_store',
+    //   permission: 'marketing_access',
+    //   children: [
+    //     { label: 'Marketing Master', icon: 'add_business', permission: 'marketing_master_access' },
+    //     { label: 'New Dealer/Distributor', icon: 'flaky', permission: 'marketing_new_dealer_access' },
+    //     { label: 'MSP Activity', icon: 'celebration', permission: 'msp_activity_access' }
+    //   ]
+    // },
     {
-      label: 'Marketing',
-      icon: 'local_convenience_store',
-      permission: 'marketing_access',
-      children: [
-        { label: 'Marketing Master', icon: 'add_business', permission: 'marketing_master_access' },
-        { label: 'New Dealer/Distributor', icon: 'flaky', permission: 'marketing_new_dealer_access' },
-        { label: 'MSP Activity', icon: 'celebration', permission: 'msp_activity_access' }
-      ]
-    },
-    {
-      label: 'Loyalty Engine',
+      label: 'Loyalty Management',
       icon: 'card_membership',
       permission: 'scheme_access',
       children: [
-        { label: 'New Invoices', icon: 'receipt_long', route: '/new-invoices', permission: 'new_invoice_access' },
-        // { label: 'Loyalty Scheme Master', icon: 'create', permission: 'scheme_access_list' },
+        { label: 'Invoices Transaction', icon: 'receipt_long', route: '/new-invoices', permission: 'new_invoice_access' },
+        { label: 'Scheme Creation', icon: 'create', route: '/loyalty-schemes', permission: 'scheme_access_list' },
         // { label: 'Transaction Coupon History', icon: 'history', permission: 'transaction_history_access' },
         // { label: 'Mobile App Users', icon: 'developer_mode', permission: 'loyalty_mobile_app_users_access' },
         // { label: 'Damage QR Entries', icon: 'insert_page_break', permission: 'damage_entry_access' },
@@ -232,28 +218,28 @@ export class SidebarComponent {
       ]
     },
     {
-      label: 'Setting Master',
+      label: 'Setting Management',
       icon: 'settings',
       permission: 'status_access',
       children: [
-        { label: 'Power BI Setting', icon: 'analytics', permission: 'power_bi_setting_access' },
-        { label: 'Invoice Setting', icon: 'settings', permission: 'invoice_setting_access' },
+        // { label: 'Power BI Setting', icon: 'analytics', permission: 'power_bi_setting_access' },
+        // { label: 'Invoice Setting', icon: 'settings', permission: 'invoice_setting_access' },
         { label: 'Loyalty App Setting', icon: 'manage_accounts', permission: 'loyalty_app_setting_access' },
         { label: 'FieldKonnect App Setting', icon: 'admin_panel_settings', permission: 'loyalty_app_setting_access' },
         { label: 'Dealer portal Setting', icon: 'settings_applications', permission: 'dealer_portal_setting_access' },
-        { label: 'Status', icon: 'format_paint', permission: 'status_access' },
+        // { label: 'Status', icon: 'format_paint', permission: 'status_access' },
         { label: 'Roles', icon: 'vertical_shades_closed', route: '/roles', permission: 'role_access' },
-        { label: 'Permissions', icon: 'workspace_premium', permission: 'permission_access' }
+        // { label: 'Permissions', icon: 'workspace_premium', permission: 'permission_access' }
       ]
     },
-    {
-      label: 'Support Master',
-      icon: 'houseboat',
-      permission: 'supports_access',
-      children: [
-        { label: 'Support', icon: 'kitesurfing', permission: 'supports_access' }
-      ]
-    },
+    // {
+    //   label: 'Support Master',
+    //   icon: 'houseboat',
+    //   permission: 'supports_access',
+    //   children: [
+    //     { label: 'Support', icon: 'kitesurfing', permission: 'supports_access' }
+    //   ]
+    // },
     {
       label: 'Beats Management',
       icon: 'houseboat',
@@ -261,16 +247,16 @@ export class SidebarComponent {
       children: [
         { label: 'Beats', icon: 'kitesurfing', permission: 'beat_access' },
         { label: 'Beat Detail', icon: 'waves', permission: 'beatdetail_access' },
-        { label: 'Checkin', icon: 'assignment_turned_in', permission: 'checkin_access' },
-        { label: 'Visit Report', icon: 'summarize', permission: 'visitreport_access' },
-        { label: 'Visit Type', icon: 'border_color', permission: 'visittype_access' },
-        { label: 'Master VisitReport', icon: 'store', permission: 'visitreport_access' },
-        { label: 'Beat Adherence', icon: 'vrpano', permission: 'adherence_report' },
-        { label: 'Adherence Summary', icon: 'summarize', permission: 'summary_report' }
+        { label: 'Checkin-Checkout', icon: 'assignment_turned_in', permission: 'checkin_access' },
+        // { label: 'Visit Report', icon: 'summarize', permission: 'visitreport_access' },
+        // { label: 'Visit Type', icon: 'border_color', permission: 'visittype_access' },
+        // { label: 'Master VisitReport', icon: 'store', permission: 'visitreport_access' },
+        // { label: 'Beat Adherence', icon: 'vrpano', permission: 'adherence_report' },
+        // { label: 'Adherence Summary', icon: 'summarize', permission: 'summary_report' }
       ]
     },
     {
-      label: 'Reports',
+      label: 'Reports Management',
       icon: 'airplay',
       permission: 'reports',
       children: [
@@ -285,20 +271,20 @@ export class SidebarComponent {
             { label: 'Orders', icon: 'shopping_bag', permission: 'order_access' },
             { label: 'Check In & Check Out', icon: 'dashboard_customize', permission: 'visit_report' },
             { label: 'ASR Performance', icon: 'summarize', permission: 'ASR_report_Download' },
-            { label: 'User working report', icon: 'hub', permission: 'user_working_report' },
-            { label: 'FOS Rating Report', icon: 'trending_down', permission: 'fos_rating_report' },
-            { label: 'Rating Report', icon: 'trending_down', permission: 'asm_rating_report' },
-            { label: 'Primary Sales', icon: 'stay_primary_landscape', permission: 'dashboard_primary_sales_access' },
-            { label: 'Secondary Sales', icon: 'cases', permission: 'dashboard_secondary_sales_access' },
-            { label: 'Product Analysis Branch', icon: 'add_chart', permission: 'product_analysis_branch_access' },
-            { label: 'Product Analysis Qty', icon: 'insert_chart', permission: 'product_analysis_qty_access' },
-            { label: 'Product Analysis Value', icon: 'add_chart', permission: 'product_analysis_value_access' },
-            { label: 'Group Wise Analysis', icon: 'query_stats', permission: 'group_wise_analysis_access' },
-            { label: 'Per Employee Costing', icon: 'temple_buddhist', permission: 'per_employee_costing_access' },
-            { label: 'Top Dealer', icon: 'lightbulb_circle', permission: 'top_dealer_access' },
-            { label: 'Dealer Growth', icon: 'diversity_2', permission: 'dealer_growth_access' },
-            { label: 'New Dealer Sale', icon: 'expand', permission: 'new_dealer_sale_access' },
-            { label: 'User Incentive', icon: 'biotech', permission: 'user_incentive_access' }
+            // { label: 'User working report', icon: 'hub', permission: 'user_working_report' },
+            // { label: 'FOS Rating Report', icon: 'trending_down', permission: 'fos_rating_report' },
+            // { label: 'Rating Report', icon: 'trending_down', permission: 'asm_rating_report' },
+            // { label: 'Primary Sales', icon: 'stay_primary_landscape', permission: 'dashboard_primary_sales_access' },
+            // { label: 'Secondary Sales', icon: 'cases', permission: 'dashboard_secondary_sales_access' },
+            // { label: 'Product Analysis Branch', icon: 'add_chart', permission: 'product_analysis_branch_access' },
+            // { label: 'Product Analysis Qty', icon: 'insert_chart', permission: 'product_analysis_qty_access' },
+            // { label: 'Product Analysis Value', icon: 'add_chart', permission: 'product_analysis_value_access' },
+            // { label: 'Group Wise Analysis', icon: 'query_stats', permission: 'group_wise_analysis_access' },
+            // { label: 'Per Employee Costing', icon: 'temple_buddhist', permission: 'per_employee_costing_access' },
+            // { label: 'Top Dealer', icon: 'lightbulb_circle', permission: 'top_dealer_access' },
+            // { label: 'Dealer Growth', icon: 'diversity_2', permission: 'dealer_growth_access' },
+            // { label: 'New Dealer Sale', icon: 'expand', permission: 'new_dealer_sale_access' },
+            // { label: 'User Incentive', icon: 'biotech', permission: 'user_incentive_access' }
           ]
         },
         {
@@ -306,36 +292,36 @@ export class SidebarComponent {
           icon: 'support_agent',
           permission: 'customers_report_access',
           children: [
-            { label: 'Retailer', icon: 'storefront', route: '/retailers', permission: 'retailer_access' },
+            // { label: 'Retailer', icon: 'storefront', route: '/retailers', permission: 'retailer_access' },
             { label: 'Retailer Performance', icon: 'summarize', permission: 'retailer_productivity_report' },
             { label: 'Customer Master', icon: 'contact_emergency', permission: 'customers_report' },
-            { label: 'Calling Report', icon: 'dialpad', permission: 'calling_report' },
+            // { label: 'Calling Report', icon: 'dialpad', permission: 'calling_report' },
             { label: 'Market Intelligence', icon: 'nature_people', permission: 'customers_report_access' }
           ]
         },
-        {
-          label: 'Legacy Reports',
-          icon: 'store',
-          children: [
-            { label: 'Field Activity Report', icon: 'store', permission: 'fielda_ctivity_report' },
-            { label: 'Tour Programme Report', icon: 'store', permission: 'tour_programme_report' },
-            { label: 'Monthly Movement Report', icon: 'store', permission: 'monthly_movement_report' },
-            { label: 'Point Collections Report', icon: 'store', permission: 'point_collections_report' },
-            { label: 'Territory Coverage Report', icon: 'store', permission: 'territory_coverage_report' },
-            { label: 'Performance Parameter', icon: 'store', permission: 'performance_parameter_report' },
-            { label: 'Mechanics Points Report', icon: 'store', permission: 'mechanics_points_report' },
-            { label: 'Target Vs Sales Report', icon: 'store', permission: 'targetvs_sales_report' },
-            { label: 'Survey Analysis Report', icon: 'store', permission: 'survey_analysis_report' }
-          ]
-        },
+        // {
+        //   label: 'Legacy Reports',
+        //   icon: 'store',
+        //   children: [
+        //     { label: 'Field Activity Report', icon: 'store', permission: 'fielda_ctivity_report' },
+        //     { label: 'Tour Programme Report', icon: 'store', permission: 'tour_programme_report' },
+        //     { label: 'Monthly Movement Report', icon: 'store', permission: 'monthly_movement_report' },
+        //     { label: 'Point Collections Report', icon: 'store', permission: 'point_collections_report' },
+        //     { label: 'Territory Coverage Report', icon: 'store', permission: 'territory_coverage_report' },
+        //     { label: 'Performance Parameter', icon: 'store', permission: 'performance_parameter_report' },
+        //     { label: 'Mechanics Points Report', icon: 'store', permission: 'mechanics_points_report' },
+        //     { label: 'Target Vs Sales Report', icon: 'store', permission: 'targetvs_sales_report' },
+        //     { label: 'Survey Analysis Report', icon: 'store', permission: 'survey_analysis_report' }
+        //   ]
+        // },
         {
           label: 'Loyalty',
           icon: 'loyalty',
           permission: 'loyalty_report_access',
           children: [
-            { label: 'Loyalty Summary Report', icon: 'card_membership', permission: 'loyalty_summary_report' },
-            { label: 'Loyalty Dealer Wise Summary Report', icon: 'sign_language', permission: 'loyalty_dealer_wise_summary_report' },
-            { label: 'Retailer Wise Loyalty Summary Report', icon: 'point_of_sale', permission: 'loyalty_retailer_wise_summary_report' }
+            // { label: 'Loyalty Summary Report', icon: 'card_membership', permission: 'loyalty_summary_report' },
+            // { label: 'Loyalty Dealer Wise Summary Report', icon: 'sign_language', permission: 'loyalty_dealer_wise_summary_report' },
+            // { label: 'Retailer Wise Loyalty Summary Report', icon: 'point_of_sale', permission: 'loyalty_retailer_wise_summary_report' }
           ]
         }
       ]

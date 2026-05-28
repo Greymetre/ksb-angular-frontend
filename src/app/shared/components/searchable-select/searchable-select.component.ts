@@ -1,4 +1,5 @@
 import { Component, ElementRef, EventEmitter, HostListener, Input, Output } from '@angular/core';
+import { firstCaps } from '../../pipes/first-caps.pipe';
 
 export interface SearchableSelectOption {
   id: number | string;
@@ -34,14 +35,18 @@ export class SearchableSelectComponent {
   get selectedText(): string {
     const selectedOptions = this.options.filter(option => this.isSelected(option.id));
     if (selectedOptions.length === 0) return this.placeholder;
-    if (!this.multiple) return selectedOptions[0].label;
-    return selectedOptions.length === 1 ? selectedOptions[0].label : `${selectedOptions.length} selected`;
+    if (!this.multiple) return firstCaps(selectedOptions[0].label);
+    return selectedOptions.length === 1 ? firstCaps(selectedOptions[0].label) : `${selectedOptions.length} selected`;
   }
 
   get filteredOptions(): SearchableSelectOption[] {
     const q = this.search.trim().toLowerCase();
     if (!q) return this.options;
     return this.options.filter(option => option.label.toLowerCase().includes(q) || String(option.id).toLowerCase().includes(q));
+  }
+
+  displayLabel(value: string): string {
+    return firstCaps(value);
   }
 
   toggleOpen(): void {
