@@ -320,7 +320,8 @@
               <div class="name-cell">{{ invoice.schemeName || '-' }}</div>
             </td>
             <td class="points-column">
-              <span>{{ invoice.schemePoints | number:'1.2-2' }}</span>
+              <span class="name-cell">{{ invoice.schemePoints | number:'1.2-2' }} </span> 
+              <!-- <small class="scheme-tier" *ngIf="invoice.schemePoints > 0">{{ invoice.tierName }}</small> -->
               <small class="hint-text" *ngIf="invoice.schemeHintMessage">{{ invoice.schemeHintMessage }}</small>
             </td>
             <td>

@@ -100,8 +100,8 @@ export class CustomerShowComponent implements OnInit {
   }
 
   get imageUrl(): string {
-    if (!this.customer) return '/assets/img/placeholder.jpg';
-    return this.mediaUrl(this.field('shop_photo') || this.customer.shopImage || this.field('shop_image') || this.customer.profileImage || this.field('profile_image')) || '/assets/img/placeholder.jpg';
+    if (!this.customer) return '/assets/img/images-placeholder.png';
+    return this.mediaUrl(this.field('shop_photo') || this.customer.shopImage || this.field('shop_image') || this.customer.profileImage || this.field('profile_image')) || '/assets/img/images-placeholder.png';
   }
 
   get pointCards(): PointCard[] {

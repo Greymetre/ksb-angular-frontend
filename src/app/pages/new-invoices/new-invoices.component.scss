@@ -568,6 +568,67 @@
   }
 }
 
+/* ===== Scheme Tier Premium UI ===== */
+
+.scheme-tier {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    margin-left: 2px;
+    padding: 2px 8px;
+
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+
+    color: #fff;
+    background: linear-gradient(135deg, #1a6fd4, #1559b0);
+
+    border-radius: 30px;
+
+    box-shadow:
+        0 4px 10px rgba(103, 103, 104, 0.35),
+        inset 0 1px 1px rgba(255,255,255,0.25);
+
+    overflow: hidden;
+}
+
+/* Premium shining effect */
+.scheme-tier::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 60%;
+    height: 100%;
+
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(255,255,255,0.8),
+        transparent
+    );
+
+    transform: skewX(-25deg);
+
+    animation: shineMove 3s infinite;
+}
+
+/* Shine Animation */
+@keyframes shineMove {
+    0% {
+        left: -120%;
+    }
+
+    100% {
+        left: 140%;
+    }
+}
+
+
 @media (max-width: 900px) {
   .detail-layout,
   .summary-grid,
