@@ -330,7 +330,7 @@
 }
 
 .data-table {
-  min-width: 1260px;
+  min-width: 1760px;
 
   th,
   td { white-space: nowrap; }
@@ -342,6 +342,19 @@
 .invoice-number {
   font-weight: 600;
   color: var(--text-dark);
+}
+
+.link-cell {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    color: var(--primary-blue);
+  }
 }
 
 .points-column {
@@ -401,7 +414,7 @@
 }
 
 .table-footer {
-  min-width: 1260px;
+  min-width: 1760px;
   display: flex;
   align-items: center;
   justify-content: space-between;

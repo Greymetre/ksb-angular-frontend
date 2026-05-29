@@ -6,11 +6,14 @@
   <div class="page-heading">
     <div class="page-icon"><span class="material-icons">diversity_3</span></div>
     <h2 class="page-title">Customers List</h2>
+    <button type="button" class="filter-toggle-btn" [class.active]="showFilters" title="Filters" (click)="showFilters = !showFilters">
+      <span class="material-icons">filter_alt</span>
+    </button>
   </div>
 
   <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
 
-  <div class="filter-card">
+  <div class="filter-card" *ngIf="showFilters">
     <div class="filter-grid">
       <div class="filter-field">
         <label>Customer Type</label>
@@ -33,14 +36,8 @@
         <input type="text" [(ngModel)]="filter.search" (keyup.enter)="loadCustomers()" placeholder="Search customers"/>
       </div>
       <div class="filter-actions">
-        <button class="btn-primary" (click)="loadCustomers()">
-          <span class="material-icons">search</span>
-          Search
-        </button>
-        <button class="btn-secondary" (click)="filter = {}; loadCustomers()">
-          <span class="material-icons">restart_alt</span>
-          Reset
-        </button>
+        <button type="button" class="mini-btn" (click)="loadCustomers()">Filter</button>
+        <button type="button" class="mini-btn light" (click)="filter = {}; loadCustomers()">Clear</button>
       </div>
     </div>
   </div>

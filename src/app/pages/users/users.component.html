@@ -8,11 +8,14 @@
       <span class="material-icons">assignment_ind</span>
     </div>
     <h2 class="page-title">UserList</h2>
+    <button type="button" class="filter-toggle-btn" [class.active]="showFilters" title="Filters" (click)="showFilters = !showFilters">
+      <span class="material-icons">filter_alt</span>
+    </button>
   </div>
 
   <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
 
-  <div class="filter-panel">
+  <div class="filter-panel" *ngIf="showFilters">
     <div class="filter-field">
       <label>User Type</label>
       <select [(ngModel)]="selectedUserType">

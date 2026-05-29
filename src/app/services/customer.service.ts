@@ -32,6 +32,12 @@ export interface CustomerItem {
   createdBy?: number | null;
   createdByName?: string | null;
   createdAt?: string | null;
+  totalPoints: number;
+  totalRegularPoints: number;
+  totalBoosterPoints: number;
+  totalRedeemPoints: number;
+  totalRejectedPoints: number;
+  totalBalancePoints: number;
   customFields: Record<string, string | null>;
 }
 
@@ -129,6 +135,20 @@ export class CustomerService {
   delete(id: number): Observable<CustomerActionResult> {
     return this.http.delete<ApiResponse>(`${this.baseUrl}/customers/${id}`, { headers: this.authHeaders() }).pipe(
       map(response => ({ message: this.responseMessage(response) || 'Customer deleted successfully' })),
+      catchError(error => this.handleError(error))
+    );
+  }
+
+  approveKyc(id: number, documentKey: string, remark = ''): Observable<CustomerActionResult> {
+    return this.http.post<ApiResponse>(`${this.baseUrl}/customers/${id}/kyc/${documentKey}/approve`, { remark }, { headers: this.authHeaders() }).pipe(
+      map(response => this.actionResult(response, 'customer', 'KYC document approved successfully')),
+      catchError(error => this.handleError(error))
+    );
+  }
+
+  rejectKyc(id: number, documentKey: string, remark: string): Observable<CustomerActionResult> {
+    return this.http.post<ApiResponse>(`${this.baseUrl}/customers/${id}/kyc/${documentKey}/reject`, { remark }, { headers: this.authHeaders() }).pipe(
+      map(response => this.actionResult(response, 'customer', 'KYC document rejected successfully')),
       catchError(error => this.handleError(error))
     );
   }
@@ -236,6 +256,12 @@ export class CustomerService {
       createdBy: this.readNullableNumber(row['created_by'] ?? row['createdBy'] ?? row['CreatedBy']),
       createdByName: this.readNullableString(row['created_by_name'] ?? row['createdByName'] ?? row['CreatedByName']),
       createdAt: this.readNullableString(row['created_at'] ?? row['createdAt'] ?? row['CreatedAt']),
+      totalPoints: this.readNumber(row['total_points'] ?? row['totalPoints'] ?? row['TotalPoints']),
+      totalRegularPoints: this.readNumber(row['total_regular_points'] ?? row['totalRegularPoints'] ?? row['TotalRegularPoints']),
+      totalBoosterPoints: this.readNumber(row['total_booster_points'] ?? row['totalBoosterPoints'] ?? row['TotalBoosterPoints']),
+      totalRedeemPoints: this.readNumber(row['total_redeem_points'] ?? row['totalRedeemPoints'] ?? row['TotalRedeemPoints']),
+      totalRejectedPoints: this.readNumber(row['total_rejected_points'] ?? row['totalRejectedPoints'] ?? row['TotalRejectedPoints']),
+      totalBalancePoints: this.readNumber(row['total_balance_points'] ?? row['totalBalancePoints'] ?? row['TotalBalancePoints']),
       customFields: fields
     };
   }

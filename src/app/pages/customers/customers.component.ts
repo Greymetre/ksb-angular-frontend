@@ -81,6 +81,7 @@ export class CustomersComponent implements OnInit {
   uploading = false;
   exporting = false;
   templating = false;
+  showFilters = false;
   showModal = false;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };

@@ -162,6 +162,9 @@
     <div class="page-heading">
       <div class="page-icon"><span class="material-icons">receipt_long</span></div>
       <h2 class="page-title">New Invoices</h2>
+      <button type="button" class="filter-toggle-btn" [class.active]="showFilters" title="Filters" (click)="showFilters = !showFilters">
+        <span class="material-icons">filter_alt</span>
+      </button>
     </div>
 
     <div class="summary-grid">
@@ -193,7 +196,7 @@
 
     <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
 
-    <div class="filter-card">
+    <div class="filter-card" *ngIf="showFilters">
       <div class="filter-grid">
         <div class="filter-field">
           <label>Retailer</label>
@@ -219,14 +222,8 @@
           <input type="date" [(ngModel)]="filter.to_date" />
         </div>
         <div class="filter-actions">
-          <button class="btn-primary" (click)="loadInvoices()">
-            <span class="material-icons">search</span>
-            Search
-          </button>
-          <button class="btn-secondary" (click)="resetFilters()">
-            <span class="material-icons">restart_alt</span>
-            Reset
-          </button>
+          <button type="button" class="mini-btn" (click)="loadInvoices()">Filter</button>
+          <button type="button" class="mini-btn light" (click)="resetFilters()">Clear</button>
         </div>
       </div>
     </div>
@@ -254,8 +251,12 @@
             <th>Retailer ID</th>
             <th>Customer</th>
             <th>Mobile</th>
+            <th>Assigned Distributor</th>
+            <th>Assigned Employee</th>
             <th>City / Zone</th>
             <th>Invoice Date</th>
+            <th>Created By</th>
+            <th>Created At</th>
             <th>Invoice Number</th>
             <th>Amount</th>
             <th>Scheme Name</th>
@@ -300,15 +301,19 @@
             </td>
             <td><span class="retailer-code">{{ invoice.retailerCode }}</span></td>
             <td>
-              <div class="name-cell">{{ invoice.customerName }}</div>
+              <button type="button" class="link-cell name-cell" (click)="openCustomerShow(invoice)">{{ invoice.customerName }}</button>
               <small>{{ invoice.shopName }}</small>
             </td>
             <td>{{ invoice.mobileNumber }}</td>
+            <td>{{ invoice.assignedDistributorName || '-' }}</td>
+            <td>{{ invoice.assignedEmployeeName || '-' }}</td>
             <td>
               {{ invoice.cityName || '-' }}
               <small>{{ invoice.zoneName || '-' }}</small>
             </td>
             <td>{{ formatDate(invoice.invoiceDate) }}</td>
+            <td>{{ invoice.createdByName || '-' }}</td>
+            <td>{{ formatDateTime(invoice.createdAt) }}</td>
             <td class="invoice-number">{{ invoice.invoiceNumber }}</td>
             <td>{{ formatMoney(invoice.amount) }}</td>
             <td>
@@ -326,7 +331,7 @@
                 invoice.approvalStatusLabel }}</span></td>
           </tr>
           <tr *ngIf="!loading && filteredInvoices.length === 0">
-            <td colspan="13" class="empty-row">No invoices found</td>
+            <td colspan="17" class="empty-row">No invoices found</td>
           </tr>
         </tbody>
       </table>

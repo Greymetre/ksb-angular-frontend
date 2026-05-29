@@ -28,6 +28,7 @@ export class ProductMasterComponent implements OnInit {
   uploading = false;
   exporting = false;
   templating = false;
+  showFilters = false;
   showModal = false;
   selectedSegmentId: number | null = null;
   selectedFamilyId: number | null = null;
@@ -49,6 +50,7 @@ export class ProductMasterComponent implements OnInit {
       this.mode = data['productMode'] as Mode || 'segment';
       this.form = this.emptyForm();
       this.showModal = false;
+      this.showFilters = false;
       this.loadOptions();
       this.loadRows();
       this.refreshView();

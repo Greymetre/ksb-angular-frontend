@@ -30,6 +30,7 @@ import { CustomersComponent } from './pages/customers/customers.component';
 import { CustomerShowComponent } from './pages/customers/customer-show/customer-show.component';
 import { LoyaltySchemesComponent } from './pages/loyalty-schemes/loyalty-schemes.component';
 import { NewInvoicesComponent } from './pages/new-invoices/new-invoices.component';
+import { RedemptionsComponent } from './pages/redemptions/redemptions.component';
 import { MasterCrudComponent } from './pages/master-crud/master-crud.component';
 import { AddressMasterComponent } from './pages/address-master/address-master.component';
 import { ForbiddenComponent } from './pages/forbidden/forbidden';
@@ -55,6 +56,7 @@ import { ForbiddenComponent } from './pages/forbidden/forbidden';
     CustomerShowComponent,
     LoyaltySchemesComponent,
     NewInvoicesComponent,
+    RedemptionsComponent,
     MasterCrudComponent,
     AddressMasterComponent,
     ForbiddenComponent,

@@ -14,6 +14,7 @@ import { CustomersComponent } from './pages/customers/customers.component';
 import { CustomerShowComponent } from './pages/customers/customer-show/customer-show.component';
 import { LoyaltySchemesComponent } from './pages/loyalty-schemes/loyalty-schemes.component';
 import { NewInvoicesComponent } from './pages/new-invoices/new-invoices.component';
+import { RedemptionsComponent } from './pages/redemptions/redemptions.component';
 import { MasterCrudComponent } from './pages/master-crud/master-crud.component';
 import { AddressMasterComponent } from './pages/address-master/address-master.component';
 import { authGuard } from './guards/auth-guard';
@@ -46,6 +47,7 @@ const routes: Routes = [
       { path: 'new-invoices', component: NewInvoicesComponent, canActivate: [authGuard], data: { permission: 'new_invoice_access' } },
       { path: 'new-invoices/:id', component: NewInvoicesComponent, canActivate: [authGuard], data: { permission: 'new_invoice_access' } },
       { path: 'loyalty-schemes', component: LoyaltySchemesComponent, canActivate: [authGuard], data: { permission: 'scheme_access_list' } },
+      { path: 'redemptions', component: RedemptionsComponent, canActivate: [authGuard], data: { permission: 'redemption_access' } },
       {
         path: 'countries',
         component: AddressMasterComponent,

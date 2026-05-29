@@ -59,6 +59,7 @@ export class LoyaltySchemesComponent implements OnInit {
   loading = false;
   saving = false;
   generatingCode = false;
+  showFilters = false;
   showModal = false;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };

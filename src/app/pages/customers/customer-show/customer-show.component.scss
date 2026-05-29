@@ -70,6 +70,23 @@
   background: white;
 }
 
+.toast-message {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 4000;
+  max-width: 360px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  background: #16a34a;
+  color: white;
+  opacity: 0;
+  pointer-events: none;
+
+  &.show { opacity: 1; }
+  &.error { background: var(--danger-red); }
+}
+
 .points-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
@@ -252,43 +269,106 @@
 .document-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 100px;
-  padding-bottom: 100px;
+  gap: 18px;
+  padding-bottom: 24px;
 }
 
 .document-card {
-  width: 100%;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   background: white;
-  color: var(--text-dark);
   display: grid;
-  gap: 10px;
-  padding: 10px;
-  text-align: left;
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
+  grid-template-columns: 190px minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: 12px;
+  align-items: center;
 
-  &:hover {
-    border-color: var(--primary-blue);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
-  }
+  &.approved { border-color: #86efac; }
+  &.rejected { border-color: #fecaca; }
+}
+
+.document-preview {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 
   img {
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 10;
     border-radius: 6px;
     border: 1px solid #eee;
     object-fit: contain;
     background: #f8fafc;
   }
+}
 
-  span {
-    min-height: 18px;
-    overflow-wrap: anywhere;
+.document-meta {
+  min-width: 0;
+
+  div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+
+  strong { font-size: 14px; }
+
+  small {
+    display: block;
+    color: var(--text-muted);
+  }
+
+  p {
+    margin: 8px 0 0;
+    color: var(--text-muted);
   }
 }
+
+.kyc-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 4px;
+  background: #fef3c7;
+  color: #92400e;
+  font-weight: 700;
+  text-transform: uppercase;
+
+  &.approved {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  &.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+.document-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-view-doc,
+.btn-approve-doc,
+.btn-reject-doc {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  .material-icons { font-size: 18px; }
+}
+
+.btn-view-doc { background: #17a2b8; }
+.btn-approve-doc { background: #16a34a; }
+.btn-reject-doc { background: var(--danger-red); }
 
 .image-modal-overlay {
   position: fixed;
@@ -310,6 +390,13 @@
   box-shadow: 0 24px 60px rgba(0, 0, 0, .28);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
+}
+
+.kyc-action-modal {
+  width: min(560px, 96vw);
+  border-radius: 8px;
+  background: white;
+  overflow: hidden;
 }
 
 .image-modal-header {
@@ -360,6 +447,72 @@
   }
 }
 
+.kyc-action-body {
+  padding: 18px;
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 14px 0 7px;
+
+    span { color: var(--danger-red); }
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 92px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    resize: vertical;
+  }
+}
+
+.kyc-action-summary {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+
+  img {
+    width: 120px;
+    aspect-ratio: 16 / 10;
+    object-fit: contain;
+    border-radius: 6px;
+    background: white;
+    border: 1px solid #eee;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 8px;
+  }
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.btn-submit-kyc {
+  background: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 22px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.reject { background: var(--danger-red); }
+  &:disabled { opacity: .65; cursor: not-allowed; }
+}
+
 .empty-panel,
 .empty-state {
   color: var(--text-muted);
@@ -395,6 +548,8 @@
   .points-grid,
   .details-grid,
   .document-grid { grid-template-columns: 1fr; }
+  .document-card { grid-template-columns: 1fr; }
+  .document-actions { justify-content: flex-start; }
   .profile-meta { justify-content: flex-start; }
   .info-row { grid-template-columns: 1fr; gap: 3px; }
   .image-modal-overlay { padding: 12px; }

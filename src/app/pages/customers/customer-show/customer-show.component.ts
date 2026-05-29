@@ -1,7 +1,10 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, timeout } from 'rxjs/operators';
+import { AuthService } from '../../../services/auth.service';
 import { CustomerItem, CustomerService } from '../../../services/customer.service';
+import { NewInvoiceItem, NewInvoiceService } from '../../../services/new-invoice.service';
+import { RedemptionItem, RedemptionService } from '../../../services/redemption.service';
 
 interface InfoRow {
   label: string;
@@ -21,8 +24,20 @@ interface TabItem {
 }
 
 interface KycDocument {
+  key: string;
   label: string;
   url: string;
+  status: 'pending' | 'approved' | 'rejected';
+  remark: string;
+  actionBy: string;
+  actionAt: string;
+}
+
+interface KycDialogModel {
+  visible: boolean;
+  action: 'approve' | 'reject' | null;
+  document: KycDocument | null;
+  remark: string;
 }
 
 @Component({
@@ -33,11 +48,21 @@ interface KycDocument {
 })
 export class CustomerShowComponent implements OnInit {
   customer: CustomerItem | null = null;
+  invoices: NewInvoiceItem[] = [];
+  redemptions: RedemptionItem[] = [];
   loading = false;
+  loadingTransactions = false;
+  loadingRedemptions = false;
   errorMessage = '';
   activeTab = 'details';
+  transactionSchemeTag: 'Regular' | 'Booster' = 'Regular';
+  redemptionWallet: 'Regular' | 'Booster' = 'Regular';
   selectedKycDocument: KycDocument | null = null;
+  kycDialog: KycDialogModel = this.emptyKycDialog();
+  savingKyc = false;
+  toast = { visible: false, message: '', type: 'success' as 'success' | 'error' };
   private readonly backendOrigin = this.resolveBackendOrigin();
+  private toastTimeoutId?: number;
 
   readonly tabs: TabItem[] = [
     { id: 'details', label: 'Details', icon: 'preview' },
@@ -47,14 +72,16 @@ export class CustomerShowComponent implements OnInit {
     { id: 'activity', label: 'Activity', icon: 'add_task' },
     { id: 'kyc', label: 'KYC', icon: 'verified' },
     { id: 'transaction', label: 'Transaction', icon: 'payment' },
-    { id: 'gift', label: 'Gift Redemption', icon: 'redeem' },
-    { id: 'neft', label: 'NEFT Redemption', icon: 'account_balance' }
+    { id: 'redemption', label: 'Redemption', icon: 'account_balance_wallet' }
   ];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private customerService: CustomerService,
+    private newInvoiceService: NewInvoiceService,
+    private redemptionService: RedemptionService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -79,12 +106,12 @@ export class CustomerShowComponent implements OnInit {
 
   get pointCards(): PointCard[] {
     return [
-      { label: 'Total Point Earn', value: this.numberField('total_points'), tone: 'primary' },
-      { label: 'Total Active Point', value: this.numberField('active_points'), tone: 'primary' },
-      { label: 'Total Provision Point', value: this.numberField('provision_points'), tone: 'primary' },
-      { label: 'Total Redeem Point', value: this.numberField('total_redemption'), tone: 'success' },
-      { label: 'Total Rejected Point', value: this.numberField('total_rejected'), tone: 'danger' },
-      { label: 'Total Balance Point', value: this.numberField('total_balance'), tone: 'info' }
+      { label: 'Total Points', value: this.customer?.totalPoints || 0, tone: 'primary' },
+      { label: 'Total Regular Points', value: this.customer?.totalRegularPoints || 0, tone: 'primary' },
+      { label: 'Total Booster Points', value: this.customer?.totalBoosterPoints || 0, tone: 'primary' },
+      { label: 'Total Redeem Point', value: this.customer?.totalRedeemPoints || 0, tone: 'success' },
+      { label: 'Total Rejected Point', value: this.customer?.totalRejectedPoints || 0, tone: 'danger' },
+      { label: 'Total Balance Point', value: this.customer?.totalBalancePoints || 0, tone: 'info' }
     ];
   }
 
@@ -157,11 +184,15 @@ export class CustomerShowComponent implements OnInit {
 
   get kycDocuments(): KycDocument[] {
     return [
-      { label: 'GST', url: this.mediaUrl(this.firstField('gst_attachment', 'gst_image')) },
-      { label: 'PAN', url: this.mediaUrl(this.firstField('pan_attachment', 'pan_image')) },
-      { label: 'Aadhaar Card', url: this.mediaUrl(this.firstField('aadhar_attachment', 'aadhaar_attachment', 'adharcard')) },
-      { label: 'Blank Cheque / Passbook', url: this.mediaUrl(this.firstField('bank_proof', 'blank_cheque', 'passbook')) }
+      this.kycDocument('gst', 'GST', this.firstField('gst_attachment', 'gst_image')),
+      this.kycDocument('pan', 'PAN', this.firstField('pan_attachment', 'pan_image')),
+      this.kycDocument('aadhar', 'Aadhaar Card', this.firstField('aadhar_attachment', 'aadhaar_attachment', 'adharcard')),
+      this.kycDocument('bank', 'Blank Cheque / Passbook', this.firstField('bank_proof', 'blank_cheque', 'passbook'))
     ].filter(document => !!document.url);
+  }
+
+  get canApproveKyc(): boolean {
+    return this.authService.hasAnyPermission(['customer_kyc_access', 'customer_edit']);
   }
 
   get customRows(): InfoRow[] {
@@ -178,6 +209,14 @@ export class CustomerShowComponent implements OnInit {
       .map(([key, value]) => ({ label: this.titleCase(key), value }));
   }
 
+  get filteredInvoices(): NewInvoiceItem[] {
+    return this.invoices.filter(invoice => this.schemeTag(invoice) === this.transactionSchemeTag);
+  }
+
+  get filteredRedemptions(): RedemptionItem[] {
+    return this.redemptions.filter(redemption => (redemption.walletType || 'Regular').toLowerCase() === this.redemptionWallet.toLowerCase());
+  }
+
   loadCustomer(id: number): void {
     this.loading = true;
     this.errorMessage = '';
@@ -190,6 +229,8 @@ export class CustomerShowComponent implements OnInit {
     ).subscribe({
       next: customer => {
         this.customer = customer;
+        this.loadTransactions();
+        this.loadRedemptions();
         this.refreshView();
       },
       error: error => {
@@ -207,6 +248,42 @@ export class CustomerShowComponent implements OnInit {
     this.activeTab = tab;
   }
 
+  setTransactionSchemeTag(tag: 'Regular' | 'Booster'): void {
+    this.transactionSchemeTag = tag;
+  }
+
+  setRedemptionWallet(wallet: 'Regular' | 'Booster'): void {
+    this.redemptionWallet = wallet;
+  }
+
+  loadTransactions(): void {
+    if (!this.customer) return;
+    this.loadingTransactions = true;
+    this.newInvoiceService.list({}).pipe(
+      finalize(() => {
+        this.loadingTransactions = false;
+        this.refreshView();
+      })
+    ).subscribe({
+      next: result => this.invoices = result.invoices.filter(invoice => invoice.secondaryCustomerId === this.customer?.id),
+      error: error => this.showToast(error.message, 'error')
+    });
+  }
+
+  loadRedemptions(): void {
+    if (!this.customer) return;
+    this.loadingRedemptions = true;
+    this.redemptionService.list({}).pipe(
+      finalize(() => {
+        this.loadingRedemptions = false;
+        this.refreshView();
+      })
+    ).subscribe({
+      next: result => this.redemptions = result.redemptions.filter(redemption => redemption.customerId === this.customer?.id),
+      error: error => this.showToast(error.message, 'error')
+    });
+  }
+
   openKycPreview(document: KycDocument): void {
     this.selectedKycDocument = document;
     this.refreshView();
@@ -215,6 +292,43 @@ export class CustomerShowComponent implements OnInit {
   closeKycPreview(): void {
     this.selectedKycDocument = null;
     this.refreshView();
+  }
+
+  openKycDialog(document: KycDocument, action: 'approve' | 'reject'): void {
+    this.kycDialog = { visible: true, document, action, remark: action === 'reject' ? document.remark : '' };
+    this.refreshView();
+  }
+
+  closeKycDialog(): void {
+    if (this.savingKyc) return;
+    this.kycDialog = this.emptyKycDialog();
+    this.refreshView();
+  }
+
+  submitKycAction(): void {
+    if (!this.customer || !this.kycDialog.document || !this.kycDialog.action) return;
+    if (this.kycDialog.action === 'reject' && !this.kycDialog.remark.trim()) {
+      this.showToast('Remark is required to reject KYC.', 'error');
+      return;
+    }
+
+    const request = this.kycDialog.action === 'approve'
+      ? this.customerService.approveKyc(this.customer.id, this.kycDialog.document.key, this.kycDialog.remark)
+      : this.customerService.rejectKyc(this.customer.id, this.kycDialog.document.key, this.kycDialog.remark);
+
+    this.savingKyc = true;
+    request.pipe(finalize(() => {
+      this.savingKyc = false;
+      this.refreshView();
+    })).subscribe({
+      next: result => {
+        if (result.item) this.customer = result.item;
+        this.kycDialog = this.emptyKycDialog();
+        this.showToast(result.message, 'success');
+        this.refreshView();
+      },
+      error: error => this.showToast(error.message, 'error')
+    });
   }
 
   field(key: string): string {
@@ -242,13 +356,76 @@ export class CustomerShowComponent implements OnInit {
     return date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
   }
 
+  formatShortDate(value?: string | null): string {
+    if (!value) return '-';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  statusClass(status: number): string {
+    return `status-${status}`;
+  }
+
+  redemptionStatusClass(status: number): string {
+    return `redemption-status-${status}`;
+  }
+
   activeTabIcon(): string {
     return this.tabs.find(tab => tab.id === this.activeTab)?.icon || 'info';
+  }
+
+  statusLabel(status: KycDocument['status']): string {
+    if (status === 'approved') return 'Approved';
+    if (status === 'rejected') return 'Rejected';
+    return 'Pending';
+  }
+
+  kycDialogTitle(): string {
+    if (!this.kycDialog.document || !this.kycDialog.action) return 'KYC Approval';
+    return `${this.kycDialog.action === 'approve' ? 'Approve' : 'Reject'} ${this.kycDialog.document.label}`;
+  }
+
+  private kycDocument(key: string, label: string, path: string): KycDocument {
+    const prefix = `${key}_kyc`;
+    return {
+      key,
+      label,
+      url: this.mediaUrl(path),
+      status: this.kycStatus(this.field(`${prefix}_status`)),
+      remark: this.field(`${prefix}_remark`),
+      actionBy: this.field(`${prefix}_action_by_name`) || this.field(`${prefix}_action_by`),
+      actionAt: this.field(`${prefix}_action_at`)
+    };
+  }
+
+  private kycStatus(value: string): KycDocument['status'] {
+    const status = value.toLowerCase();
+    return status === 'approved' || status === 'rejected' ? status : 'pending';
+  }
+
+  private schemeTag(invoice: NewInvoiceItem): 'Regular' | 'Booster' {
+    return (invoice.schemeTag || '').toLowerCase() === 'booster' ? 'Booster' : 'Regular';
   }
 
   private numberField(key: string): number {
     const value = Number(this.field(key));
     return Number.isFinite(value) ? value : 0;
+  }
+
+  private emptyKycDialog(): KycDialogModel {
+    return { visible: false, action: null, document: null, remark: '' };
+  }
+
+  private showToast(message: string, type: 'success' | 'error'): void {
+    if (!message) return;
+    this.toast = { visible: true, message, type };
+    if (this.toastTimeoutId) window.clearTimeout(this.toastTimeoutId);
+    this.toastTimeoutId = window.setTimeout(() => {
+      this.toast = { ...this.toast, visible: false };
+      this.refreshView();
+    }, 3500);
+    this.refreshView();
   }
 
   private lookupName(key: string): string {

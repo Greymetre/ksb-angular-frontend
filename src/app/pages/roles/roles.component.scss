@@ -203,7 +203,7 @@
 }
 
 .mini-btn {
-  background: #17a2b8;
+  background: var(--sidebar-bg);
   color: white;
   border: none;
   border-radius: 4px;
@@ -213,7 +213,7 @@
   font-weight: 600;
   cursor: pointer;
 
-  &:hover { background: #138496; }
+  &:hover { background: var(--sidebar-hover); }
 }
 
 .role-modal {

@@ -69,6 +69,7 @@ export class UsersComponent implements OnInit {
   uploading = false;
   exporting = false;
   templating = false;
+  showFilters = false;
   showUserModal = false;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };

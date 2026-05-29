@@ -4,9 +4,12 @@
   <div class="page-heading">
     <div class="page-icon"><span class="material-icons">{{ mode === 'product' ? 'widgets' : mode === 'family' ? 'account_tree' : 'category' }}</span></div>
     <h2 class="page-title">{{ title }}</h2>
+    <button type="button" class="filter-toggle-btn" [class.active]="showFilters" title="Filters" (click)="showFilters = !showFilters" *ngIf="mode !== 'segment'">
+      <span class="material-icons">filter_alt</span>
+    </button>
   </div>
 
-  <div class="filter-panel" *ngIf="mode !== 'segment'">
+  <div class="filter-panel" *ngIf="mode !== 'segment' && showFilters">
     <div class="filter-field">
       <label>Segment</label>
       <select [(ngModel)]="selectedSegmentId" (ngModelChange)="selectedFamilyId = null">

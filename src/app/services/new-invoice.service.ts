@@ -13,6 +13,8 @@ export interface NewInvoiceItem {
   mobileNumber: string;
   cityName?: string | null;
   zoneName?: string | null;
+  assignedDistributorName?: string | null;
+  assignedEmployeeName?: string | null;
   invoiceNumber: string;
   invoiceDate: string;
   amount: number;
@@ -213,6 +215,8 @@ export class NewInvoiceService {
       mobileNumber: this.readString(row['mobile_number'] ?? row['mobileNumber']),
       cityName: this.readNullableString(row['city_name'] ?? row['cityName']),
       zoneName: this.readNullableString(row['zone_name'] ?? row['zoneName']),
+      assignedDistributorName: this.readNullableString(row['assigned_distributor_name'] ?? row['assignedDistributorName']),
+      assignedEmployeeName: this.readNullableString(row['assigned_employee_name'] ?? row['assignedEmployeeName']),
       invoiceNumber: this.readString(row['invoice_number'] ?? row['invoiceNumber']),
       invoiceDate: this.readString(row['invoice_date'] ?? row['invoiceDate']),
       amount: this.readNumber(row['amount']),

@@ -41,7 +41,7 @@ body {
 
 // Buttons
 .btn-primary {
-  background: var(--primary-blue);
+  background: var(--sidebar-bg);
   color: white;
   border: none;
   border-radius: 6px;
@@ -53,7 +53,44 @@ body {
   align-items: center;
   gap: 6px;
   transition: background 0.2s;
-  &:hover { background: var(--primary-blue-dark); }
+  &:hover { background: var(--sidebar-hover); }
+}
+
+.mini-btn {
+  min-height: 34px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 4px;
+  background: var(--sidebar-bg);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { background: var(--sidebar-hover); }
+  &.light {
+    background: #eef2f7;
+    color: var(--text-dark);
+    &:hover { background: #e2e8f0; }
+  }
+}
+
+.filter-toggle-btn {
+  margin-left: auto;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 8px;
+  background: var(--sidebar-bg);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  .material-icons { font-size: 22px; }
+  &:hover,
+  &.active { background: var(--sidebar-hover); }
 }
 
 .btn-danger {
@@ -99,6 +136,24 @@ body {
   width: 30px;
   height: 30px;
   font-size: 12px;
+}
+
+.section-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; h4 { margin: 0; font-size: 15px; } }
+.segment-control { display: inline-flex; padding: 3px; border: 1px solid var(--border-color); border-radius: 6px; background: #f8fafc; button { min-width: 92px; min-height: 32px; border: 0; border-radius: 4px; background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; &.active { background: var(--primary-blue); color: white; } } }
+.table-wrap { overflow: auto; border: 1px solid #edf0f4; border-radius: 8px; }
+.mini-table { width: 100%; min-width: 820px; border-collapse: collapse; th, td { padding: 12px 14px; border-bottom: 1px solid #edf0f4; text-align: left; white-space: nowrap; } th { background: #eef3fb; } tr:last-child td { border-bottom: 0; } }
+.status-badge, .mode-pill { display: inline-flex; min-height: 24px; padding: 0 9px; border-radius: 4px; align-items: center; color: white; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.mode-pill { background: #e0f2fe; color: #0369a1; }
+.status-0, .redemption-status-0 { background: var(--status-pending); }
+.status-1, .status-2, .status-3, .redemption-status-1 { background: #16a34a; }
+.status-4, .redemption-status-2 { background: var(--danger-red); }
+.redemption-status-3 { background: #7c3aed; }
+.link-text { color: var(--primary-blue); font-weight: 700; }
+
+@media (max-width: 720px) {
+  .section-toolbar { align-items: stretch; flex-direction: column; }
+  .segment-control { width: 100%; }
+  .segment-control button { flex: 1; }
 }
 
 .btn-assign {

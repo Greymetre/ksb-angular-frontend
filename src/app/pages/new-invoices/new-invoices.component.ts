@@ -53,6 +53,7 @@ export class NewInvoicesComponent implements OnInit {
   loading = false;
   saving = false;
   exporting = false;
+  showFilters = false;
   showModal = false;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
@@ -185,6 +186,10 @@ export class NewInvoicesComponent implements OnInit {
 
   openShowPage(invoice: NewInvoiceItem): void {
     this.router.navigate(['/new-invoices', invoice.id]);
+  }
+
+  openCustomerShow(invoice: NewInvoiceItem): void {
+    if (invoice.secondaryCustomerId > 0) this.router.navigate(['/customers', invoice.secondaryCustomerId]);
   }
 
   backToList(): void {
