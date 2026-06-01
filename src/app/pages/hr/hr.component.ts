@@ -91,6 +91,10 @@ export class HrComponent implements OnInit {
   get userSelectOptions(): SearchableSelectOption[] { return this.toSelectOptions(this.options.users); }
   get tourDistrictSelectOptions(): SearchableSelectOption[] { return this.toSelectOptions(this.tourDistrictOptions); }
   get tourCitySelectOptions(): SearchableSelectOption[] { return this.toSelectOptions(this.tourCityOptions); }
+  get holidayTargetLabel(): string { return this.form['holiday_for'] === 'division' ? 'Zone' : 'Branch'; }
+  get holidayFilterLabel(): string { return this.filter['holiday_for'] === 'division' ? 'Zone' : 'Branch'; }
+  get leaveTypes(): string[] { return ['First Half Leave', 'Second Half Leave', 'Full Day Leave']; }
+  get balanceTypes(): string[] { return ['Casual Leave']; }
 
   get canWrite(): boolean {
     if (this.isHoliday) return this.authService.hasPermission('holiday_access');
@@ -146,6 +150,9 @@ export class HrComponent implements OnInit {
     if (this.isHoliday) {
       this.form['namesText'] = this.arrayValue(row['names']).join('\n');
       this.form['holidayDatesText'] = this.arrayValue(row['holiday_dates'] ?? row['holidayDates']).join('\n');
+      this.form['holiday_for'] = row['holiday_for'] ?? row['holidayFor'] ?? (row['division_id'] || row['divisionId'] ? 'division' : 'branch');
+      this.form['division_id'] = row['division_id'] ?? row['divisionId'] ?? '';
+      this.form['branch'] = row['branch'] ?? '';
     }
     if (this.isTour) {
       this.form['user_id'] = row['user_id'] ?? row['userId'] ?? '';
@@ -312,6 +319,18 @@ export class HrComponent implements OnInit {
     this.loadAttendancePlan();
   }
 
+  onHolidayForChange(): void {
+    this.form['branch'] = '';
+    this.form['division_id'] = '';
+    this.refreshView();
+  }
+
+  onHolidayFilterForChange(): void {
+    this.filter['branch_id'] = '';
+    this.filter['division_id'] = '';
+    this.refreshView();
+  }
+
   label(options: HrOption[], id: unknown): string {
     const numberId = Number(id || 0);
     return options.find(option => option.id === numberId)?.name || '';
@@ -432,11 +451,20 @@ export class HrComponent implements OnInit {
     if (this.isHoliday) {
       const names = this.lines(this.form['namesText']);
       const dates = this.lines(this.form['holidayDatesText']);
-      if (!this.form['branch'] || !names.length || !dates.length) {
-        this.showToast('Branch, holiday name and date are required.', 'error');
+      const holidayFor = this.form['holiday_for'] === 'division' ? 'division' : 'branch';
+      const targetId = holidayFor === 'division' ? this.form['division_id'] : this.form['branch'];
+      if (!targetId || !names.length || !dates.length) {
+        this.showToast(`${this.holidayTargetLabel}, holiday name and date are required.`, 'error');
         return null;
       }
-      return { branch: Number(this.form['branch']), names, holiday_dates: dates, active: this.form['active'] || 'Y' };
+      return {
+        holiday_for: holidayFor,
+        branch: holidayFor === 'branch' ? Number(this.form['branch']) : null,
+        division_id: holidayFor === 'division' ? Number(this.form['division_id']) : null,
+        names,
+        holiday_dates: dates,
+        active: this.form['active'] || 'Y'
+      };
     }
     if (this.isLeave) {
       if (!this.form['user_id'] || !this.form['from_date'] || !this.form['to_date'] || !this.form['type'] || !this.form['bal_type']) {
@@ -485,7 +513,7 @@ export class HrComponent implements OnInit {
 
   private defaultForm(): HrRecord {
     const today = new Date().toISOString().slice(0, 10);
-    if (this.isHoliday) return { active: 'Y', branch: '', namesText: '', holidayDatesText: today };
+    if (this.isHoliday) return { active: 'Y', holiday_for: 'division', branch: '', division_id: '', namesText: '', holidayDatesText: today };
     if (this.isLeave) return { user_id: '', from_date: today, to_date: today, type: 'Full Day Leave', bal_type: 'Casual Leave', reason: '' };
     if (this.isTour) return { user_id: '', date: today, district: '', town: '', objectives: '' };
     if (this.isAttendance) return { user_id: '', punchin_date: today, punchin_time: '', working_type: '', punchin_summary: '', tour_id: '', tour_city: '', tour_city_id: '' };

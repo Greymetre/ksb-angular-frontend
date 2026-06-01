@@ -21,10 +21,25 @@
         </select>
       </div>
       <div class="filter-field" *ngIf="isHoliday">
+        <label>Holiday For</label>
+        <select [(ngModel)]="filter['holiday_for']" (change)="onHolidayFilterForChange()">
+          <option value="">All</option>
+          <option value="division">Zone</option>
+          <option value="branch">Branch</option>
+        </select>
+      </div>
+      <div class="filter-field" *ngIf="isHoliday && filter['holiday_for'] === 'branch'">
         <label>Branch</label>
         <select [(ngModel)]="filter['branch_id']">
           <option value="">All Branches</option>
           <option *ngFor="let branch of options.branches" [value]="branch.id">{{ branch.name | firstCaps }}</option>
+        </select>
+      </div>
+      <div class="filter-field" *ngIf="isHoliday && filter['holiday_for'] === 'division'">
+        <label>Zone</label>
+        <select [(ngModel)]="filter['division_id']">
+          <option value="">All Zones</option>
+          <option *ngFor="let division of options.divisions" [value]="division.id">{{ division.name | firstCaps }}</option>
         </select>
       </div>
       <div class="filter-field" *ngIf="isTour">
@@ -103,14 +118,15 @@
 
     <table class="data-table" *ngIf="isHoliday">
       <thead>
-        <tr><th>No</th><th>Action</th><th>Active</th><th>Branch</th><th>Name</th><th>Holiday Date</th><th>Created By</th><th>Created At</th></tr>
+        <tr><th>No</th><th>Action</th><th>Active</th><th>Holiday For</th><th>Branch / Zone</th><th>Name</th><th>Holiday Date</th><th>Created By</th><th>Created At</th></tr>
       </thead>
       <tbody>
         <tr *ngFor="let row of visibleRows; let i = index">
           <td>{{ pageStart + i + 1 }}</td>
           <td><div class="action-btns"><button class="btn-edit" (click)="openEdit(row)" title="Edit"><span class="material-icons">edit</span></button><button class="btn-danger" (click)="deleteRow(row)" title="Delete"><span class="material-icons">close</span></button></div></td>
           <td><span class="mode-pill">{{ row['active'] }}</span></td>
-          <td>{{ row['branch_name'] || row['branchName'] | firstCaps }}</td>
+          <td>{{ (row['holiday_for'] || row['holidayFor'] || 'branch') === 'division' ? 'Zone' : 'Branch' }}</td>
+          <td>{{ ((row['holiday_for'] || row['holidayFor']) === 'division' ? (row['division_name'] || row['divisionName']) : (row['branch_name'] || row['branchName'])) | firstCaps }}</td>
           <td>{{ row['name'] | firstCaps }}</td>
           <td>{{ row['holiday_date'] || row['holidayDate'] }}</td>
           <td>{{ row['created_by_name'] || row['createdByName'] || '-' }}</td>
@@ -224,7 +240,9 @@
 
     <div class="modal-body">
       <div class="form-grid" *ngIf="isHoliday">
-        <div class="modal-field"><label>Branch <span class="req">*</span></label><select [(ngModel)]="form['branch']"><option value="">Select Branch</option><option *ngFor="let branch of options.branches" [value]="branch.id">{{ branch.name | firstCaps }}</option></select></div>
+        <div class="modal-field"><label>Holiday For <span class="req">*</span></label><select [(ngModel)]="form['holiday_for']" (change)="onHolidayForChange()"><option value="division">Zone</option><option value="branch">Branch</option></select></div>
+        <div class="modal-field" *ngIf="form['holiday_for'] === 'branch'"><label>Branch <span class="req">*</span></label><select [(ngModel)]="form['branch']"><option value="">Select Branch</option><option *ngFor="let branch of options.branches" [value]="branch.id">{{ branch.name | firstCaps }}</option></select></div>
+        <div class="modal-field" *ngIf="form['holiday_for'] === 'division'"><label>Zone <span class="req">*</span></label><select [(ngModel)]="form['division_id']"><option value="">Select Zone</option><option *ngFor="let division of options.divisions" [value]="division.id">{{ division.name | firstCaps }}</option></select></div>
         <div class="modal-field wide-field"><label>Holiday Names <span class="req">*</span></label><textarea [(ngModel)]="form['namesText']" rows="4"></textarea></div>
         <div class="modal-field wide-field"><label>Holiday Dates <span class="req">*</span></label><textarea [(ngModel)]="form['holidayDatesText']" rows="4"></textarea></div>
       </div>
@@ -233,8 +251,8 @@
         <div class="modal-field"><label>User <span class="req">*</span></label><select [(ngModel)]="form['user_id']"><option value="">Select User</option><option *ngFor="let user of options.users" [value]="user.id">{{ user.name | firstCaps }}</option></select></div>
         <div class="modal-field"><label>From Date <span class="req">*</span></label><input type="date" [(ngModel)]="form['from_date']" /></div>
         <div class="modal-field"><label>To Date <span class="req">*</span></label><input type="date" [(ngModel)]="form['to_date']" /></div>
-        <div class="modal-field"><label>Leave Type <span class="req">*</span></label><select [(ngModel)]="form['type']"><option *ngFor="let type of options.leave_types" [value]="type">{{ type }}</option></select></div>
-        <div class="modal-field"><label>Balance Type <span class="req">*</span></label><select [(ngModel)]="form['bal_type']"><option *ngFor="let type of options.balance_types" [value]="type">{{ type }}</option></select></div>
+        <div class="modal-field"><label>Leave Type <span class="req">*</span></label><select [(ngModel)]="form['type']"><option *ngFor="let type of leaveTypes" [value]="type">{{ type }}</option></select></div>
+        <div class="modal-field"><label>Balance Type <span class="req">*</span></label><select [(ngModel)]="form['bal_type']"><option *ngFor="let type of balanceTypes" [value]="type">{{ type }}</option></select></div>
         <div class="modal-field wide-field"><label>Reason</label><textarea [(ngModel)]="form['reason']" rows="3"></textarea></div>
       </div>
 
