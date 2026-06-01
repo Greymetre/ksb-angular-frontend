@@ -6,4 +6,6 @@ import { Component } from '@angular/core';
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss']
 })
-export class MainLayoutComponent {}
+export class MainLayoutComponent {
+  sidebarCollapsed = false;
+}

@@ -17,6 +17,7 @@ interface Category {
 })
 export class CategoriesComponent {
   showEntries = 10;
+  currentPage = 1;
   searchQuery = '';
   showModal = false;
   editModal = false;
@@ -32,6 +33,18 @@ export class CategoriesComponent {
     if (!this.searchQuery) return this.categories;
     const q = this.searchQuery.toLowerCase();
     return this.categories.filter(c => c.categoryName.toLowerCase().includes(q) || c.createdBy.toLowerCase().includes(q));
+  }
+
+  get pagedCategories(): Category[] {
+    return this.filtered.slice(this.pageStart, this.pageStart + this.safeShowEntries);
+  }
+
+  get pageStart(): number {
+    return (this.currentPage - 1) * this.safeShowEntries;
+  }
+
+  resetPage(): void {
+    this.currentPage = 1;
   }
 
   openAddModal() { this.modalData = { categoryName: '', sapCode: '' }; this.showModal = true; }
@@ -51,4 +64,9 @@ export class CategoriesComponent {
   }
   deleteCategory(c: Category) { this.categories = this.categories.filter(x => x.no !== c.no); }
   toggleActive(c: Category) { c.active = !c.active; }
+
+  private get safeShowEntries(): number {
+    const value = Number(this.showEntries);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 10;
+  }
 }

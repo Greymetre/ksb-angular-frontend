@@ -27,6 +27,7 @@ export class RolesComponent implements OnInit {
   roles: Role[] = [];
   permissions: Permission[] = [];
   showEntries = 10;
+  currentPage = 1;
   searchQuery = '';
   permissionSearch = '';
   showRoleModal = false;
@@ -61,7 +62,11 @@ export class RolesComponent implements OnInit {
   }
 
   get pagedRoles(): Role[] {
-    return this.filteredRoles.slice(0, this.showEntries);
+    return this.filteredRoles.slice(this.pageStart, this.pageStart + this.safeShowEntries);
+  }
+
+  get pageStart(): number {
+    return (this.currentPage - 1) * this.safeShowEntries;
   }
 
   get filteredPermissions(): Permission[] {
@@ -114,6 +119,7 @@ export class RolesComponent implements OnInit {
     this.successMessage = '';
     this.roles = [];
     this.permissions = [];
+    this.currentPage = 1;
 
     this.loadPermissions();
     this.loadRoles();
@@ -131,6 +137,7 @@ export class RolesComponent implements OnInit {
     ).subscribe({
       next: roles => {
         this.roles = roles;
+        this.currentPage = 1;
         if (roles.length === 0) {
           this.errorMessage = 'Roles API returned 200, but no roles were found in the response.';
         }
@@ -143,6 +150,10 @@ export class RolesComponent implements OnInit {
         this.refreshView();
       }
     });
+  }
+
+  resetPage(): void {
+    this.currentPage = 1;
   }
 
   loadPermissions(): void {
@@ -340,6 +351,11 @@ export class RolesComponent implements OnInit {
 
   private refreshView(): void {
     this.cdr.detectChanges();
+  }
+
+  private get safeShowEntries(): number {
+    const value = Number(this.showEntries);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 10;
   }
 
   private emptyForm(): RoleFormModel {

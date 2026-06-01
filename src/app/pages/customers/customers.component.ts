@@ -76,6 +76,7 @@ export class CustomersComponent implements OnInit {
 
   customers: CustomerItem[] = [];
   showEntries = 10;
+  currentPage = 1;
   loading = false;
   saving = false;
   uploading = false;
@@ -128,7 +129,11 @@ export class CustomersComponent implements OnInit {
   }
 
   get filteredCustomers(): CustomerItem[] {
-    return this.customers.slice(0, this.showEntries);
+    return this.customers.slice(this.pageStart, this.pageStart + this.safeShowEntries);
+  }
+
+  get pageStart(): number {
+    return (this.currentPage - 1) * this.safeShowEntries;
   }
 
   get isDistributor(): boolean {
@@ -170,6 +175,7 @@ export class CustomersComponent implements OnInit {
   loadCustomers(): void {
     this.loading = true;
     this.errorMessage = '';
+    this.currentPage = 1;
     this.customerService.list(this.filter).pipe(
       timeout(20000),
       finalize(() => {
@@ -186,6 +192,10 @@ export class CustomersComponent implements OnInit {
         this.refreshView();
       }
     });
+  }
+
+  resetPage(): void {
+    this.currentPage = 1;
   }
 
   loadDistributors(): void {
@@ -781,6 +791,11 @@ export class CustomersComponent implements OnInit {
 
   private refreshView(): void {
     this.cdr.detectChanges();
+  }
+
+  private get safeShowEntries(): number {
+    const value = Number(this.showEntries);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 10;
   }
 
   private resetAddressSearch(): void {

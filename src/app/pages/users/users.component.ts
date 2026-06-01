@@ -3,6 +3,7 @@ import { timeout } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { User, UserFilters, UserOption, UserPayload, UserService } from '../../services/user.service';
+import { SearchableSelectOption } from '../../shared/components/searchable-select/searchable-select.component';
 import { firstCaps } from '../../shared/pipes/first-caps.pipe';
 
 interface UserFormModel {
@@ -17,6 +18,7 @@ interface UserFormModel {
   password: string;
   branches: number[];
   roles: number[];
+  cityIds: number[];
   designationId: number | null;
   divisionId: number | null;
   departmentId: number | null;
@@ -54,8 +56,10 @@ export class UsersComponent implements OnInit {
   divisions: UserOption[] = [];
   departments: UserOption[] = [];
   reportings: UserOption[] = [];
+  cities: UserOption[] = [];
 
   showEntries = 10;
+  currentPage = 1;
   searchQuery = '';
   selectedUserType = 'employee';
   selectedActive = '';
@@ -107,7 +111,11 @@ export class UsersComponent implements OnInit {
   }
 
   get pagedUsers(): User[] {
-    return this.filteredUsers.slice(0, this.showEntries);
+    return this.filteredUsers.slice(this.pageStart, this.pageStart + this.safeShowEntries);
+  }
+
+  get pageStart(): number {
+    return (this.currentPage - 1) * this.safeShowEntries;
   }
 
   get filteredModalBranches(): UserOption[] {
@@ -162,9 +170,14 @@ export class UsersComponent implements OnInit {
     return this.authService.hasPermission('user_upload');
   }
 
+  get citySelectOptions(): SearchableSelectOption[] {
+    return this.cities.map(city => ({ id: city.id, label: city.name }));
+  }
+
   loadUsers(): void {
     this.loading = true;
     this.errorMessage = '';
+    this.currentPage = 1;
 
     this.userService.getUsers(this.currentFilters()).pipe(
       timeout(20000),
@@ -202,6 +215,7 @@ export class UsersComponent implements OnInit {
         this.divisions = options.divisions;
         this.departments = options.departments;
         this.reportings = options.reportings;
+        this.cities = options.cities;
         this.refreshView();
       },
       error: error => {
@@ -212,6 +226,7 @@ export class UsersComponent implements OnInit {
   }
 
   applyFilters(): void {
+    this.currentPage = 1;
     this.loadUsers();
   }
 
@@ -222,7 +237,12 @@ export class UsersComponent implements OnInit {
     this.selectedBranchId = '';
     this.selectedDepartmentId = null;
     this.searchQuery = '';
+    this.currentPage = 1;
     this.loadUsers();
+  }
+
+  resetPage(): void {
+    this.currentPage = 1;
   }
 
   openCreateModal(): void {
@@ -246,6 +266,7 @@ export class UsersComponent implements OnInit {
       password: '',
       branches: this.parseBranchIds(user.branchId),
       roles: (user.roles ?? []).map(role => role.id),
+      cityIds: user.cityIds ?? [],
       designationId: user.designationId ?? null,
       divisionId: user.divisionId ?? null,
       departmentId: user.departmentId ?? null,
@@ -469,6 +490,11 @@ export class UsersComponent implements OnInit {
     };
   }
 
+  private get safeShowEntries(): number {
+    const value = Number(this.showEntries);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 10;
+  }
+
   private buildPayload(): UserPayload {
     const name = (this.userForm.name || `${this.userForm.firstName} ${this.userForm.lastName}`).trim();
     const branchId = this.userForm.branches.join(',');
@@ -497,7 +523,8 @@ export class UsersComponent implements OnInit {
       salesType: this.userForm.salesType,
       showAttandanceReport: this.userForm.showAttandanceReport,
       dateOfJoining: this.userForm.dateOfJoining,
-      roles: this.userForm.roles
+      roles: this.userForm.roles,
+      cityIds: this.userForm.cityIds
     };
   }
 
@@ -584,6 +611,7 @@ export class UsersComponent implements OnInit {
       password: '',
       branches: [],
       roles: [],
+      cityIds: [],
       designationId: null,
       divisionId: null,
       departmentId: null,

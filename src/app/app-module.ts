@@ -11,6 +11,7 @@ import { App } from './app';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { SidebarComponent } from './shared/components/sidebar/sidebar.component';
 import { SearchableSelectComponent } from './shared/components/searchable-select/searchable-select.component';
+import { PaginationComponent } from './shared/components/pagination/pagination.component';
 import { FirstCapsPipe } from './shared/pipes/first-caps.pipe';
 
 // Layout
@@ -34,6 +35,8 @@ import { RedemptionsComponent } from './pages/redemptions/redemptions.component'
 import { MasterCrudComponent } from './pages/master-crud/master-crud.component';
 import { AddressMasterComponent } from './pages/address-master/address-master.component';
 import { ForbiddenComponent } from './pages/forbidden/forbidden';
+import { HrComponent } from './pages/hr/hr.component';
+import { CityAssignmentsComponent } from './pages/city-assignments/city-assignments.component';
 
 @NgModule({
   declarations: [
@@ -41,6 +44,7 @@ import { ForbiddenComponent } from './pages/forbidden/forbidden';
     HeaderComponent,
     SidebarComponent,
     SearchableSelectComponent,
+    PaginationComponent,
     FirstCapsPipe,
     MainLayoutComponent,
     LoginComponent,
@@ -60,6 +64,8 @@ import { ForbiddenComponent } from './pages/forbidden/forbidden';
     MasterCrudComponent,
     AddressMasterComponent,
     ForbiddenComponent,
+    HrComponent,
+    CityAssignmentsComponent,
   ],
   imports: [BrowserModule, CommonModule, FormsModule, ReactiveFormsModule, AppRoutingModule],
   providers: [provideHttpClient()],

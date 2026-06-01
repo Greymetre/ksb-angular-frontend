@@ -50,6 +50,7 @@ export class NewInvoicesComponent implements OnInit {
   selectedInvoice: NewInvoiceItem | null = null;
   selectedRetailer: RetailerOption | null = null;
   showEntries = 10;
+  currentPage = 1;
   loading = false;
   saving = false;
   exporting = false;
@@ -91,7 +92,11 @@ export class NewInvoicesComponent implements OnInit {
   }
 
   get filteredInvoices(): NewInvoiceItem[] {
-    return this.invoices.slice(0, this.showEntries);
+    return this.invoices.slice(this.pageStart, this.pageStart + this.safeShowEntries);
+  }
+
+  get pageStart(): number {
+    return (this.currentPage - 1) * this.safeShowEntries;
   }
 
   get canCreate(): boolean {
@@ -133,6 +138,7 @@ export class NewInvoicesComponent implements OnInit {
   loadInvoices(): void {
     this.loading = true;
     this.errorMessage = '';
+    this.currentPage = 1;
     this.newInvoiceService.list(this.filter).pipe(
       timeout(20000),
       finalize(() => {
@@ -328,7 +334,12 @@ export class NewInvoicesComponent implements OnInit {
 
   resetFilters(): void {
     this.filter = {};
+    this.currentPage = 1;
     this.loadInvoices();
+  }
+
+  resetPage(): void {
+    this.currentPage = 1;
   }
 
   exportInvoices(): void {
@@ -491,6 +502,11 @@ export class NewInvoicesComponent implements OnInit {
 
   private refreshView(): void {
     this.cdr.detectChanges();
+  }
+
+  private get safeShowEntries(): number {
+    const value = Number(this.showEntries);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 10;
   }
 
   private downloadBlob(blob: Blob, fileName: string): void {

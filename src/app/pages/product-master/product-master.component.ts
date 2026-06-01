@@ -22,6 +22,7 @@ export class ProductMasterComponent implements OnInit {
   segments: ProductSegment[] = [];
   families: ProductFamily[] = [];
   showEntries = 10;
+  currentPage = 1;
   searchQuery = '';
   loading = false;
   saving = false;
@@ -49,6 +50,7 @@ export class ProductMasterComponent implements OnInit {
     this.route.data.subscribe(data => {
       this.mode = data['productMode'] as Mode || 'segment';
       this.form = this.emptyForm();
+      this.currentPage = 1;
       this.showModal = false;
       this.showFilters = false;
       this.loadOptions();
@@ -74,7 +76,11 @@ export class ProductMasterComponent implements OnInit {
   }
 
   get pagedRows(): Array<ProductSegment | ProductFamily | ProductItem> {
-    return this.rows.slice(0, this.showEntries);
+    return this.rows.slice(this.pageStart, this.pageStart + this.safeShowEntries);
+  }
+
+  get pageStart(): number {
+    return (this.currentPage - 1) * this.safeShowEntries;
   }
 
   get filteredFamilies(): ProductFamily[] {
@@ -90,6 +96,7 @@ export class ProductMasterComponent implements OnInit {
 
   loadRows(): void {
     this.loading = true;
+    this.currentPage = 1;
     const request: Observable<Array<ProductSegment | ProductFamily | ProductItem>> = this.mode === 'segment'
       ? this.productService.listSegments(this.searchQuery)
       : this.mode === 'family'
@@ -117,6 +124,7 @@ export class ProductMasterComponent implements OnInit {
   }
 
   applyFilters(): void {
+    this.currentPage = 1;
     this.loadRows();
   }
 
@@ -124,7 +132,12 @@ export class ProductMasterComponent implements OnInit {
     this.searchQuery = '';
     this.selectedSegmentId = null;
     this.selectedFamilyId = null;
+    this.currentPage = 1;
     this.loadRows();
+  }
+
+  resetPage(): void {
+    this.currentPage = 1;
   }
 
   openCreate(): void {
@@ -308,6 +321,11 @@ export class ProductMasterComponent implements OnInit {
 
   private refreshView(): void {
     this.cdr.detectChanges();
+  }
+
+  private get safeShowEntries(): number {
+    const value = Number(this.showEntries);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 10;
   }
 
   private resolveBackendOrigin(): string {

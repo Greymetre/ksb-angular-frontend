@@ -44,6 +44,7 @@ interface ToastModel {
 export class MasterCrudComponent implements OnInit, OnDestroy {
   items: MasterItem[] = [];
   showEntries = 10;
+  currentPage = 1;
   searchQuery = '';
   loading = false;
   saving = false;
@@ -69,6 +70,7 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
       this.config = data['masterConfig'] as MasterRouteConfig;
       this.items = [];
       this.searchQuery = '';
+      this.currentPage = 1;
       this.closeModal();
       this.loadItems();
     });
@@ -91,7 +93,11 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
   }
 
   get pagedItems(): MasterItem[] {
-    return this.filteredItems.slice(0, this.showEntries);
+    return this.filteredItems.slice(this.pageStart, this.pageStart + this.safeShowEntries);
+  }
+
+  get pageStart(): number {
+    return (this.currentPage - 1) * this.safeShowEntries;
   }
 
   get canCreate(): boolean {
@@ -113,6 +119,7 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
   loadItems(): void {
     this.loading = true;
     this.errorMessage = '';
+    this.currentPage = 1;
 
     this.masterService.list(this.config, '').pipe(
       timeout(20000),
@@ -132,6 +139,10 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
         this.refreshView();
       }
     });
+  }
+
+  resetPage(): void {
+    this.currentPage = 1;
   }
 
   openCreateModal(): void {
@@ -314,6 +325,11 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
 
   private refreshView(): void {
     this.cdr.detectChanges();
+  }
+
+  private get safeShowEntries(): number {
+    const value = Number(this.showEntries);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 10;
   }
 
   private emptyForm(): MasterFormModel {

@@ -19,6 +19,8 @@ import { MasterCrudComponent } from './pages/master-crud/master-crud.component';
 import { AddressMasterComponent } from './pages/address-master/address-master.component';
 import { authGuard } from './guards/auth-guard';
 import { ForbiddenComponent } from './pages/forbidden/forbidden';
+import { HrComponent } from './pages/hr/hr.component';
+import { CityAssignmentsComponent } from './pages/city-assignments/city-assignments.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -48,6 +50,51 @@ const routes: Routes = [
       { path: 'new-invoices/:id', component: NewInvoicesComponent, canActivate: [authGuard], data: { permission: 'new_invoice_access' } },
       { path: 'loyalty-schemes', component: LoyaltySchemesComponent, canActivate: [authGuard], data: { permission: 'scheme_access_list' } },
       { path: 'redemptions', component: RedemptionsComponent, canActivate: [authGuard], data: { permission: 'redemption_access' } },
+      {
+        path: 'holidays',
+        component: HrComponent,
+        canActivate: [authGuard],
+        data: {
+          permission: 'holiday_access',
+          hrConfig: { mode: 'holidays', title: 'Holidays', icon: 'holiday_village', path: 'holidays', key: 'holidays', exportPath: 'holidays/export', fileName: 'holidays.xlsx' }
+        }
+      },
+      {
+        path: 'leaves',
+        component: HrComponent,
+        canActivate: [authGuard],
+        data: {
+          permission: 'leave_access',
+          hrConfig: { mode: 'leaves', title: 'Leaves', icon: 'energy_savings_leaf', path: 'leaves', key: 'leaves', exportPath: 'leaves/export', fileName: 'leaves.xlsx' }
+        }
+      },
+      {
+        path: 'tours',
+        component: HrComponent,
+        canActivate: [authGuard],
+        data: {
+          permission: 'tours',
+          hrConfig: { mode: 'tours', title: 'Tours', icon: 'tour', path: 'tours', key: 'tours', exportPath: 'tours/export', fileName: 'tours.xlsx' }
+        }
+      },
+      {
+        path: 'attendance-details',
+        component: HrComponent,
+        canActivate: [authGuard],
+        data: {
+          permission: 'attendance_report',
+          hrConfig: { mode: 'attendance-details', title: 'Attendance Details', icon: 'report', path: 'attendances', key: 'attendances', exportPath: 'attendances/export', fileName: 'attendancereports.xlsx' }
+        }
+      },
+      {
+        path: 'attendance-summary',
+        component: HrComponent,
+        canActivate: [authGuard],
+        data: {
+          permission: 'attendance_summary_report',
+          hrConfig: { mode: 'attendance-summary', title: 'Attendance Summary', icon: 'summarize', path: 'attendance-summary', key: 'summary', exportPath: 'attendance-summary/export', fileName: 'attendance-summary.xlsx' }
+        }
+      },
       {
         path: 'countries',
         component: AddressMasterComponent,
@@ -177,6 +224,7 @@ const routes: Routes = [
           }
         }
       },
+      { path: 'city-assignments', component: CityAssignmentsComponent, canActivate: [authGuard], data: { permission: 'city_assigned' } },
       {
         path: 'branches',
         component: MasterCrudComponent,

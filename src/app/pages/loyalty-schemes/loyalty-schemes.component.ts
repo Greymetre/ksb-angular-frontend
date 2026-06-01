@@ -54,6 +54,7 @@ export class LoyaltySchemesComponent implements OnInit {
   statuses = ['Draft', 'Live', 'Ended'];
 
   showEntries = 10;
+  currentPage = 1;
   searchQuery = '';
   selectedStatus = '';
   loading = false;
@@ -92,7 +93,11 @@ export class LoyaltySchemesComponent implements OnInit {
   }
 
   get pagedSchemes(): LoyaltyScheme[] {
-    return this.filteredSchemes.slice(0, this.showEntries);
+    return this.filteredSchemes.slice(this.pageStart, this.pageStart + this.safeShowEntries);
+  }
+
+  get pageStart(): number {
+    return (this.currentPage - 1) * this.safeShowEntries;
   }
 
   get areaOptions(): LoyaltySchemeOption[] {
@@ -120,6 +125,7 @@ export class LoyaltySchemesComponent implements OnInit {
   loadSchemes(): void {
     this.loading = true;
     this.errorMessage = '';
+    this.currentPage = 1;
     this.schemeService.list({ status: this.selectedStatus || undefined }).pipe(
       timeout(20000),
       finalize(() => {
@@ -149,13 +155,19 @@ export class LoyaltySchemesComponent implements OnInit {
   }
 
   applyFilters(): void {
+    this.currentPage = 1;
     this.loadSchemes();
   }
 
   clearFilters(): void {
     this.searchQuery = '';
     this.selectedStatus = '';
+    this.currentPage = 1;
     this.loadSchemes();
+  }
+
+  resetPage(): void {
+    this.currentPage = 1;
   }
 
   openCreate(): void {
@@ -387,5 +399,10 @@ export class LoyaltySchemesComponent implements OnInit {
 
   private refreshView(): void {
     this.cdr.detectChanges();
+  }
+
+  private get safeShowEntries(): number {
+    const value = Number(this.showEntries);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 10;
   }
 }

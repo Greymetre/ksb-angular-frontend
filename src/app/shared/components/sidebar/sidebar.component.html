@@ -1,5 +1,13 @@
-<nav class="sidebar">
-  <!-- <div class="collapse-dot"></div> -->
+<nav class="sidebar" [class.collapsed]="collapsed">
+  <button
+    type="button"
+    class="collapse-toggle"
+    (click)="toggleSidebar()"
+    [attr.aria-label]="collapsed ? 'Expand sidebar menu' : 'Collapse sidebar menu'"
+    [attr.title]="collapsed ? 'Expand menu' : 'Collapse menu'"
+  >
+    <span class="material-icons">{{ collapsed ? 'chevron_right' : 'chevron_left' }}</span>
+  </button>
   <ul class="menu-list">
     <ng-container *ngTemplateOutlet="menuLevel; context: { items: menuItems, child: false }"></ng-container>
   </ul>
@@ -12,6 +20,10 @@
       [class.submenu-item]="child"
       [class.active]="isActive(item)"
       [class.disabled]="!item.route && !item.children?.length"
+      [attr.data-title]="item.label"
+      (mouseenter)="showTooltip(item, $event)"
+      (mousemove)="moveTooltip($event)"
+      (mouseleave)="hideTooltip()"
       (click)="navigate(item)"
     >
       <span class="menu-icon">
@@ -27,3 +39,11 @@
     </ul>
   </li>
 </ng-template>
+
+<div
+  *ngIf="collapsed && tooltipLabel"
+  class="sidebar-tooltip"
+  [style.top.px]="tooltipTop"
+>
+  {{ tooltipLabel }}
+</div>

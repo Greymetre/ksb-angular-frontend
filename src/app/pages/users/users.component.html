@@ -60,7 +60,7 @@
 
   <div class="table-toolbar">
     <div class="toolbar-left">
-      <label>Show <input type="number" [(ngModel)]="showEntries" class="entries-input" min="5" max="100"/> entries</label>
+      <label>Show <input type="number" [(ngModel)]="showEntries" (ngModelChange)="resetPage()" class="entries-input" min="5" max="100"/> entries</label>
     </div>
     <div class="toolbar-right">
       <div class="icon-action-group">
@@ -80,7 +80,7 @@
       </div>
       <div class="search-group">
         <label>Search:</label>
-        <input type="text" [(ngModel)]="searchQuery" class="table-search"/>
+        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="resetPage()" class="table-search"/>
       </div>
     </div>
   </div>
@@ -110,7 +110,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let user of pagedUsers; let index = index">
-            <td>{{ index + 1 }}</td>
+            <td>{{ pageStart + index + 1 }}</td>
             <td>
               <div class="action-btns">
                 <button class="btn-edit" title="Edit User" (click)="openEditModal(user)" *ngIf="canEdit">
@@ -147,12 +147,7 @@
       </table>
     </div>
     <div class="table-footer">
-      <span class="entries-info">Showing {{ pagedUsers.length ? 1 : 0 }} to {{ pagedUsers.length }} of {{ filteredUsers.length }} entries</span>
-      <div class="pagination">
-        <button class="page-btn">PREV</button>
-        <button class="page-btn active">1</button>
-        <button class="page-btn">NEXT</button>
-      </div>
+      <app-pagination [total]="filteredUsers.length" [pageSize]="showEntries" [(page)]="currentPage"></app-pagination>
     </div>
   </div>
 </div>
@@ -304,6 +299,16 @@
             <option [ngValue]="null">Select reporting person</option>
             <option *ngFor="let reporting of reportings" [ngValue]="reporting.id">{{ reporting.name | firstCaps }}</option>
           </select>
+        </div>
+        <div class="modal-field">
+          <label>City Assigned</label>
+          <app-searchable-select
+            [options]="citySelectOptions"
+            [selected]="userForm.cityIds"
+            [multiple]="true"
+            placeholder="Select cities"
+            (selectedChange)="userForm.cityIds = $event"
+          ></app-searchable-select>
         </div>
         <div class="modal-field">
           <label>Location</label>

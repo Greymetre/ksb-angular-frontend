@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
@@ -19,6 +19,12 @@ interface MenuItem {
   styleUrls: ['./sidebar.component.scss']
 })
 export class SidebarComponent {
+  @Output() collapsedChange = new EventEmitter<boolean>();
+
+  collapsed = false;
+  tooltipLabel = '';
+  tooltipTop = 0;
+
   private readonly allMenuItems: MenuItem[] = [
 
     { label: 'Dashboard', icon: 'transcribe', route: '/dashboard', permission: 'dashboard_access' },
@@ -55,7 +61,7 @@ export class SidebarComponent {
         { label: 'District', icon: 'balcony', route: '/districts', permission: 'district_access' },
         { label: 'City', icon: 'apartment', route: '/cities', permission: 'city_access' },
         { label: 'Pincode', icon: 'cabin', route: '/pincodes', permission: 'pincode_access' },
-        { label: 'City Assigned', icon: 'location_city', permission: 'city_assigned' }
+        { label: 'City Assigned', icon: 'location_city', route: '/city-assignments', permission: 'city_assigned' }
       ]
     },
 
@@ -104,10 +110,10 @@ export class SidebarComponent {
       icon: 'family_restroom',
       permission: 'hr_access',
       children: [
-        { label: 'Attendance Details', icon: 'report', permission: 'attendance_report' },
-        { label: 'Attendance Summary', icon: 'summarize', permission: 'attendance_summary_report' },
-        { label: 'Holidays', icon: 'holiday_village', permission: 'holiday_access' },
-        { label: 'Leaves', icon: 'energy_savings_leaf', permission: 'leave_access' },
+        { label: 'Attendance Details', icon: 'report', route: '/attendance-details', permission: 'attendance_report' },
+        { label: 'Attendance Summary', icon: 'summarize', route: '/attendance-summary', permission: 'attendance_summary_report' },
+        { label: 'Holidays', icon: 'holiday_village', route: '/holidays', permission: 'holiday_access' },
+        { label: 'Leaves', icon: 'energy_savings_leaf', route: '/leaves', permission: 'leave_access' },
         // { label: 'Resignation', icon: 'outgoing_mail', permission: 'resignation_access' },
         // { label: 'Appraisal(PMS)', icon: 'verified_user', permission: 'appraisal_pms' },
         // { label: 'Sales Weightage', icon: 'checkroom', permission: 'sales_weightage' },
@@ -126,7 +132,7 @@ export class SidebarComponent {
         { label: 'User App details', icon: 'details', permission: 'user_app_details_access' },
         { label: 'User Target', icon: 'loupe', permission: 'target_access' },
         { label: 'User Live Activity', icon: 'share_location', permission: 'user_location' },
-        { label: 'Tours', icon: 'tour', permission: 'tours' },
+        { label: 'Tours', icon: 'tour', route: '/tours', permission: 'tours' },
       ]
     },
     {
@@ -342,6 +348,30 @@ export class SidebarComponent {
     });
   }
 
+  toggleSidebar() {
+    this.collapsed = !this.collapsed;
+    if (!this.collapsed) {
+      this.menuItems.forEach(item => this.expandActiveBranch(item));
+    }
+    this.hideTooltip();
+    this.collapsedChange.emit(this.collapsed);
+  }
+
+  showTooltip(item: MenuItem, event: MouseEvent) {
+    if (!this.collapsed) return;
+    this.tooltipLabel = item.label;
+    this.moveTooltip(event);
+  }
+
+  moveTooltip(event: MouseEvent) {
+    if (!this.collapsed || !this.tooltipLabel) return;
+    this.tooltipTop = event.clientY;
+  }
+
+  hideTooltip() {
+    this.tooltipLabel = '';
+  }
+
   toggle(item: MenuItem) {
     if (!item.children?.length) return;
     item.expanded = !item.expanded;
@@ -398,4 +428,5 @@ export class SidebarComponent {
     }
     return active;
   }
+
 }

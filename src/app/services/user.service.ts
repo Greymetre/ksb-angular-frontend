@@ -44,6 +44,7 @@ export interface User {
   passwordString?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  cityIds: number[];
   roles: UserRole[];
 }
 
@@ -54,6 +55,7 @@ export interface UserOptions {
   divisions: UserOption[];
   departments: UserOption[];
   reportings: UserOption[];
+  cities: UserOption[];
 }
 
 export interface UserFilters {
@@ -88,6 +90,7 @@ export interface UserPayload {
   showAttandanceReport?: string;
   dateOfJoining?: string | null;
   roles?: number[];
+  cityIds?: number[];
 }
 
 export interface UserActionResult {
@@ -132,7 +135,7 @@ export class UserService {
   }
 
   createUser(payload: UserPayload): Observable<UserActionResult> {
-    return this.http.post<UserApiResponse>(`${this.baseUrl}/users`, payload, {
+    return this.http.post<UserApiResponse>(`${this.baseUrl}/users`, this.toApiPayload(payload), {
       headers: this.authHeaders()
     }).pipe(
       map(response => this.actionResult(response, 'User created successfully')),
@@ -141,7 +144,7 @@ export class UserService {
   }
 
   updateUser(userId: number, payload: UserPayload): Observable<UserActionResult> {
-    return this.http.put<UserApiResponse>(`${this.baseUrl}/users/${userId}`, payload, {
+    return this.http.put<UserApiResponse>(`${this.baseUrl}/users/${userId}`, this.toApiPayload(payload), {
       headers: this.authHeaders()
     }).pipe(
       map(response => this.actionResult(response, 'User updated successfully')),
@@ -212,6 +215,34 @@ export class UserService {
     return token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
   }
 
+  private toApiPayload(payload: UserPayload): Record<string, unknown> {
+    return {
+      active: payload.active,
+      name: payload.name,
+      first_name: payload.firstName,
+      last_name: payload.lastName,
+      employee_codes: payload.employeeCodes,
+      mobile: payload.mobile,
+      email: payload.email,
+      password: payload.password,
+      branch_id: payload.branchId,
+      branch_ids: payload.branchIds,
+      designation_id: payload.designationId,
+      division_id: payload.divisionId,
+      department_id: payload.departmentId,
+      reporting_id: payload.reportingId,
+      location: payload.location,
+      base_location_coordinates: payload.baseLocationCoordinates,
+      payroll: payload.payroll,
+      warehouse_id: payload.warehouseId,
+      sales_type: payload.salesType,
+      show_attandance_report: payload.showAttandanceReport,
+      date_of_joining: payload.dateOfJoining,
+      roles: payload.roles,
+      city_ids: payload.cityIds
+    };
+  }
+
   private requireUser(response: UserApiResponse): User {
     const user = this.pickFirstValue(response, ['user', 'User', 'data.user', 'extra.user', 'result.user', 'data']);
     if (!user) {
@@ -246,7 +277,8 @@ export class UserService {
       designations: this.readOptionsArray(options, 'designations', 'Designations'),
       divisions: this.readOptionsArray(options, 'divisions', 'Divisions'),
       departments: this.readOptionsArray(options, 'departments', 'Departments'),
-      reportings: this.readOptionsArray(options, 'reportings', 'Reportings')
+      reportings: this.readOptionsArray(options, 'reportings', 'Reportings'),
+      cities: this.readOptionsArray(options, 'cities', 'Cities')
     };
   }
 
@@ -290,6 +322,9 @@ export class UserService {
       passwordString: this.readNullableString(row['passwordString'] ?? row['PasswordString'] ?? row['password_string']),
       createdAt: this.readNullableString(row['createdAt'] ?? row['CreatedAt'] ?? row['created_at']),
       updatedAt: this.readNullableString(row['updatedAt'] ?? row['UpdatedAt'] ?? row['updated_at']),
+      cityIds: this.asArray(row['cityIds'] ?? row['CityIds'] ?? row['city_ids'])
+        .map(value => this.readNumber(value))
+        .filter(value => value > 0),
       roles
     };
   }

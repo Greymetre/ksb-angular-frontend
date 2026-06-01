@@ -8,20 +8,94 @@
   overflow-y: auto;
   overflow-x: hidden;
   z-index: 99;
+  transition: width 0.25s ease;
   &::-webkit-scrollbar { width: 4px; }
   &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+  &.collapsed {
+    width: 72px;
+
+    .menu-list {
+      padding-top: 12px;
+    }
+
+    .menu-item {
+      justify-content: center;
+      min-height: 48px;
+      padding: 13px 0;
+      gap: 0;
+
+      &.active {
+        border-left-width: 3px;
+      }
+
+    }
+
+    .menu-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .menu-label,
+    .chevron {
+      opacity: 0;
+      pointer-events: none;
+      width: 0;
+    }
+
+    .submenu {
+      background: rgba(0,0,0,0.12);
+    }
+  }
 }
-.collapse-dot {
-  width: 20px; height: 20px;
-  background: white;
-  border-radius: 50%;
-  position: absolute;
-  right: -10px;
-  top: 30px;
+
+.sidebar-tooltip {
+  position: fixed;
+  left: 84px;
+  z-index: 120;
+  max-width: 220px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #1a3a6b;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  pointer-events: none;
+  text-transform: capitalize;
+  transform: translateY(-50%);
+}
+
+.collapse-toggle {
+  width: 30px;
+  height: 30px;
   border: 2px solid #1a3a6b;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #1a3a6b;
   cursor: pointer;
-  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 10px;
+  margin: 10px 10px 2px auto;
+  z-index: 110;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  .material-icons {
+    font-size: 20px;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    transform: scale(1.04);
+  }
 }
+
 .menu-list {
   list-style: none;
   padding: 8px 0;
@@ -33,7 +107,7 @@
   padding: 13px 20px;
   color: rgba(255,255,255,0.85);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s, padding 0.25s ease;
   gap: 14px;
   position: relative;
   &:hover { background: rgba(255,255,255,0.1); }
@@ -43,8 +117,19 @@
     border-left: 3px solid #4fc3f7;
   }
   .menu-icon .material-icons { font-size: 20px; min-width: 20px; }
-  .menu-label { flex: 1; font-size: 14px; font-weight: 400; }
-  .chevron { font-size: 18px; color: rgba(255,255,255,0.6); }
+  .menu-label {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 400;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: opacity 0.18s ease, width 0.25s ease;
+  }
+  .chevron {
+    font-size: 18px;
+    color: rgba(255,255,255,0.6);
+    transition: opacity 0.18s ease, width 0.25s ease;
+  }
 
   &.disabled {
     cursor: default;

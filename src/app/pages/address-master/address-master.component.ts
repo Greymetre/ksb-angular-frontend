@@ -58,6 +58,7 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
   items: AddressItem[] = [];
   parentOptions: AddressItem[] = [];
   showEntries = 10;
+  currentPage = 1;
   searchQuery = '';
   loading = false;
   optionsLoading = false;
@@ -87,6 +88,7 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
       this.items = [];
       this.parentOptions = [];
       this.searchQuery = '';
+      this.currentPage = 1;
       this.showModal = false;
       this.loadItems();
       this.loadOptions();
@@ -111,7 +113,11 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
   }
 
   get pagedItems(): AddressItem[] {
-    return this.filteredItems.slice(0, this.showEntries);
+    return this.filteredItems.slice(this.pageStart, this.pageStart + this.safeShowEntries);
+  }
+
+  get pageStart(): number {
+    return (this.currentPage - 1) * this.safeShowEntries;
   }
 
   get canCreate(): boolean {
@@ -141,6 +147,7 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
   loadItems(): void {
     this.loading = true;
     this.errorMessage = '';
+    this.currentPage = 1;
 
     this.addressService.list(this.config).pipe(
       timeout(20000),
@@ -158,6 +165,10 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
         this.refreshView();
       }
     });
+  }
+
+  resetPage(): void {
+    this.currentPage = 1;
   }
 
   loadOptions(): void {
@@ -387,6 +398,11 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
 
   private refreshView(): void {
     this.cdr.detectChanges();
+  }
+
+  private get safeShowEntries(): number {
+    const value = Number(this.showEntries);
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : 10;
   }
 
   private emptyForm(): AddressFormModel {
