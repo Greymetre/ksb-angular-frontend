@@ -21,6 +21,9 @@ import { authGuard } from './guards/auth-guard';
 import { ForbiddenComponent } from './pages/forbidden/forbidden';
 import { HrComponent } from './pages/hr/hr.component';
 import { CityAssignmentsComponent } from './pages/city-assignments/city-assignments.component';
+import { UserTargetsComponent } from './pages/user-targets/user-targets.component';
+import { ExpensesTypeComponent } from './pages/expenses-type/expenses-type.component';
+import { ExpensesComponent } from './pages/expenses/expenses.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -225,6 +228,9 @@ const routes: Routes = [
         }
       },
       { path: 'city-assignments', component: CityAssignmentsComponent, canActivate: [authGuard], data: { permission: 'city_assigned' } },
+      { path: 'user-targets', component: UserTargetsComponent, canActivate: [authGuard], data: { permission: 'target_access' } },
+      { path: 'expenses-types', component: ExpensesTypeComponent, canActivate: [authGuard], data: { permission: 'expenses_type' } },
+      { path: 'expenses', component: ExpensesComponent, canActivate: [authGuard], data: { permission: 'expense_access' } },
       {
         path: 'branches',
         component: MasterCrudComponent,

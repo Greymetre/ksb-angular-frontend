@@ -37,6 +37,9 @@ import { AddressMasterComponent } from './pages/address-master/address-master.co
 import { ForbiddenComponent } from './pages/forbidden/forbidden';
 import { HrComponent } from './pages/hr/hr.component';
 import { CityAssignmentsComponent } from './pages/city-assignments/city-assignments.component';
+import { UserTargetsComponent } from './pages/user-targets/user-targets.component';
+import { ExpensesTypeComponent } from './pages/expenses-type/expenses-type.component';
+import { ExpensesComponent } from './pages/expenses/expenses.component';
 
 @NgModule({
   declarations: [
@@ -66,6 +69,9 @@ import { CityAssignmentsComponent } from './pages/city-assignments/city-assignme
     ForbiddenComponent,
     HrComponent,
     CityAssignmentsComponent,
+    UserTargetsComponent,
+    ExpensesTypeComponent,
+    ExpensesComponent,
   ],
   imports: [BrowserModule, CommonModule, FormsModule, ReactiveFormsModule, AppRoutingModule],
   providers: [provideHttpClient()],

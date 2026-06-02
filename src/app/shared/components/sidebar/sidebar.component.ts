@@ -130,7 +130,7 @@ export class SidebarComponent {
       children: [
         { label: 'User Details', icon: 'assignment_ind', route: '/users', permission: 'user_access' },
         { label: 'User App details', icon: 'details', permission: 'user_app_details_access' },
-        { label: 'User Target', icon: 'loupe', permission: 'target_access' },
+        { label: 'User Target', icon: 'loupe', route: '/user-targets', permission: 'target_access' },
         { label: 'User Live Activity', icon: 'share_location', permission: 'user_location' },
         { label: 'Tours', icon: 'tour', route: '/tours', permission: 'tours' },
       ]
@@ -140,8 +140,8 @@ export class SidebarComponent {
       icon: 'attribution',
       permission: 'account_access',
       children: [
-        { label: 'Expenses Type', icon: 'dashboard', permission: 'expenses_type' },
-        { label: 'Expense', icon: 'outlet', permission: 'expense_access' },
+        { label: 'Expenses Type', icon: 'dashboard', route: '/expenses-types', permission: 'expenses_type' },
+        { label: 'Expense', icon: 'outlet', route: '/expenses', permission: 'expense_access' },
         // { label: 'Dealer Outstanding', icon: 'nature_people', permission: 'customer_outstanting' },
         // { label: 'Dealer Account Statement', icon: 'request_page', permission: 'dealer_account_statement' },
         // { label: 'Estimate', icon: 'request_quote', permission: 'estimate_access' },
