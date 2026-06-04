@@ -4,6 +4,7 @@ import { AuthService } from '../../services/auth.service';
 import { UserOption } from '../../services/user.service';
 import { Expense, ExpenseOptions, ExpensePayload, ExpenseService } from '../../services/expense.service';
 import { ExpenseType } from '../../services/expense-type.service';
+import { API_ORIGIN } from '../../config/api.config';
 
 interface ToastModel {
   visible: boolean;
@@ -433,9 +434,7 @@ export class ExpensesComponent implements OnInit {
   }
 
   private apiOrigin(): string {
-    const { protocol, hostname, port } = window.location;
-    if (port === '4200') return `${protocol}//${hostname === 'localhost' ? '127.0.0.1' : hostname}:5172`;
-    return window.location.origin;
+    return API_ORIGIN;
   }
 
   statusName(status: number): string {

@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { API_BASE_URL } from '../config/api.config';
 
 export interface NewInvoiceItem {
   id: number;
@@ -105,7 +106,7 @@ type ApiResponse = Record<string, unknown>;
 
 @Injectable({ providedIn: 'root' })
 export class NewInvoiceService {
-  private readonly baseUrl = '/api/new-invoices';
+  private readonly baseUrl = `${API_BASE_URL}/new-invoices`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

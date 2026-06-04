@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { API_BASE_URL } from '../config/api.config';
 import { UserOption } from './user.service';
 
 export interface UserTarget {
@@ -60,7 +61,7 @@ type ApiResponse = Record<string, unknown>;
 
 @Injectable({ providedIn: 'root' })
 export class UserTargetService {
-  private readonly baseUrl = '/api';
+  private readonly baseUrl = API_BASE_URL;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

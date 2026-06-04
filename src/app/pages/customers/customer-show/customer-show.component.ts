@@ -5,6 +5,7 @@ import { AuthService } from '../../../services/auth.service';
 import { CustomerItem, CustomerService } from '../../../services/customer.service';
 import { NewInvoiceItem, NewInvoiceService } from '../../../services/new-invoice.service';
 import { RedemptionItem, RedemptionService } from '../../../services/redemption.service';
+import { API_ORIGIN } from '../../../config/api.config';
 
 interface InfoRow {
   label: string;
@@ -451,8 +452,6 @@ export class CustomerShowComponent implements OnInit {
   }
 
   private resolveBackendOrigin(): string {
-    const { protocol, hostname, port } = window.location;
-    if (port === '4200') return `${protocol}//${hostname === 'localhost' ? '127.0.0.1' : hostname}:5172`;
-    return window.location.origin;
+    return API_ORIGIN;
   }
 }

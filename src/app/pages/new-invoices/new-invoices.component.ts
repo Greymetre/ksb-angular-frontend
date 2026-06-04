@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, timeout } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { NewInvoiceFilter, NewInvoiceItem, NewInvoicePayload, NewInvoiceService, NewInvoiceSummary, RetailerOption } from '../../services/new-invoice.service';
+import { API_ORIGIN } from '../../config/api.config';
 
 interface SelectOption {
   id: number | string;
@@ -534,8 +535,6 @@ export class NewInvoicesComponent implements OnInit {
   }
 
   private resolveBackendOrigin(): string {
-    const { protocol, hostname, port } = window.location;
-    if (port === '4200') return `${protocol}//${hostname === 'localhost' ? '127.0.0.1' : hostname}:5172`;
-    return window.location.origin;
+    return API_ORIGIN;
   }
 }

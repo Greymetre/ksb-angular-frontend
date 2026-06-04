@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { API_BASE_URL } from '../config/api.config';
 
 export interface RedemptionItem {
   id: number;
@@ -84,7 +85,7 @@ type ApiResponse = Record<string, unknown>;
 
 @Injectable({ providedIn: 'root' })
 export class RedemptionService {
-  private readonly baseUrl = '/api/redemptions';
+  private readonly baseUrl = `${API_BASE_URL}/redemptions`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

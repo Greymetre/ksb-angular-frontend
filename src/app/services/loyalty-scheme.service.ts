@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { API_BASE_URL } from '../config/api.config';
 
 export interface LoyaltySchemeSlab {
   id?: number;
@@ -77,7 +78,7 @@ type ApiResponse = Record<string, unknown>;
 
 @Injectable({ providedIn: 'root' })
 export class LoyaltySchemeService {
-  private readonly baseUrl = '/api/loyalty-schemes';
+  private readonly baseUrl = `${API_BASE_URL}/loyalty-schemes`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { ProductFamily, ProductItem, ProductSegment, ProductService } from '../../services/product.service';
+import { API_ORIGIN } from '../../config/api.config';
 
 type Mode = 'segment' | 'family' | 'product';
 
@@ -329,8 +330,6 @@ export class ProductMasterComponent implements OnInit {
   }
 
   private resolveBackendOrigin(): string {
-    const { protocol, hostname, port } = window.location;
-    if (port === '4200') return `${protocol}//${hostname === 'localhost' ? '127.0.0.1' : hostname}:5172`;
-    return window.location.origin;
+    return API_ORIGIN;
   }
 }

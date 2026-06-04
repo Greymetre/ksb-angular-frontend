@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { API_BASE_URL } from '../config/api.config';
 
 interface LoginUserInfo {
   id: number;
@@ -24,7 +25,7 @@ interface LoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly loginUrl = '/api/login';
+  private readonly loginUrl = `${API_BASE_URL}/login`;
   private readonly tokenKey = 'netproject_access_token';
   private readonly userKey = 'netproject_user';
   private readonly deviceKey = 'netproject_device_id';

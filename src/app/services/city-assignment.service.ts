@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { API_BASE_URL } from '../config/api.config';
 
 export interface CityAssignment {
   id: number;
@@ -31,7 +32,7 @@ export interface CityAssignmentOptions {
 
 @Injectable({ providedIn: 'root' })
 export class CityAssignmentService {
-  private readonly baseUrl = '/api/city-assignments';
+  private readonly baseUrl = `${API_BASE_URL}/city-assignments`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
