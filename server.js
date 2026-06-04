@@ -3,7 +3,6 @@ const http = require('http');
 const path = require('path');
 
 const port = Number(process.env.PORT) || 4200;
-const host = '0.0.0.0';
 const candidates = [
   path.join(__dirname, 'browser'),
   path.join(__dirname, 'dist', 'fieldkonnect-ui', 'browser'),
@@ -48,6 +47,13 @@ function sendFile(response, filePath) {
 
 const server = http.createServer((request, response) => {
   const requestPath = decodeURIComponent(new URL(request.url, `http://${request.headers.host}`).pathname);
+
+  if (requestPath === '/health') {
+    response.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    response.end(JSON.stringify({ status: 'ok' }));
+    return;
+  }
+
   const normalizedPath = path.normalize(requestPath).replace(/^(\.\.[/\\])+/, '');
   const filePath = path.join(publicDir, normalizedPath === '/' ? 'index.html' : normalizedPath);
 
@@ -67,7 +73,9 @@ const server = http.createServer((request, response) => {
   });
 });
 
-server.listen(port, host, () => {
-  console.log(`Frontend server listening on ${host}:${port}`);
+server.listen(port, () => {
+  const address = server.address();
+  const resolvedHost = typeof address === 'object' && address ? address.address : 'unknown';
+  console.log(`Frontend server listening on ${resolvedHost}:${port}`);
   console.log(`Serving Angular files from ${publicDir}`);
 });
