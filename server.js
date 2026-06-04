@@ -73,7 +73,7 @@ const server = http.createServer((request, response) => {
   });
 });
 
-server.listen(port, () => {
+server.listen(port, '0.0.0.0', () => {
   const address = server.address();
   const resolvedHost = typeof address === 'object' && address ? address.address : 'unknown';
   console.log(`Frontend server listening on ${resolvedHost}:${port}`);
