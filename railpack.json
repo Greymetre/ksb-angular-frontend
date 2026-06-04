@@ -8,5 +8,8 @@
         "rm -rf browser && cp -R dist/fieldkonnect-ui/browser ./browser"
       ]
     }
+  },
+  "deploy": {
+    "startCommand": "node server.js"
   }
 }
