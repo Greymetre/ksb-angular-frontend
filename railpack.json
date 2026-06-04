@@ -1,6 +1,12 @@
 {
-  "build": {
-    "cmd": "npm run build"
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "steps": {
+    "build": {
+      "commands": [
+        "...",
+        "rm -rf browser && cp -R dist/fieldkonnect-ui/browser ./browser"
+      ]
+    }
   }
 }
-
