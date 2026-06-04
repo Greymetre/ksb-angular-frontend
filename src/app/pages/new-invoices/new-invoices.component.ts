@@ -29,6 +29,7 @@ interface ApprovalDialogModel {
   visible: boolean;
   invoice: NewInvoiceItem | null;
   level: 'ss' | 'sales' | 'ho' | 'reject' | null;
+  approvedAmount: number | null;
   remark: string;
 }
 
@@ -285,7 +286,7 @@ export class NewInvoicesComponent implements OnInit {
   }
 
   openApprovalDialog(invoice: NewInvoiceItem, level: 'ss' | 'sales' | 'ho' | 'reject'): void {
-    this.approvalDialog = { visible: true, invoice, level, remark: '' };
+    this.approvalDialog = { visible: true, invoice, level, approvedAmount: level === 'reject' ? null : invoice.amount, remark: '' };
     this.refreshView();
   }
 
@@ -303,11 +304,15 @@ export class NewInvoicesComponent implements OnInit {
       this.showToast('Remark is required to reject an invoice.', 'error');
       return;
     }
+    if (level !== 'reject' && (!this.approvalDialog.approvedAmount || this.approvalDialog.approvedAmount <= 0)) {
+      this.showToast('Approved invoice amount must be greater than 0.', 'error');
+      return;
+    }
 
     this.saving = true;
     const request = level === 'reject'
       ? this.newInvoiceService.reject(invoice.id, this.approvalDialog.remark)
-      : this.newInvoiceService.approve(invoice.id, level, this.approvalDialog.remark);
+      : this.newInvoiceService.approve(invoice.id, level, this.approvalDialog.remark, Number(this.approvalDialog.approvedAmount));
 
     request.pipe(finalize(() => {
       this.saving = false;
@@ -401,6 +406,11 @@ export class NewInvoicesComponent implements OnInit {
     return invoice.schemeName ? `${invoice.schemeName}${invoice.schemeCode ? ' (' + invoice.schemeCode + ')' : ''}` : '-';
   }
 
+  approvalStageText(amount?: number | null, remark?: string | null): string {
+    const amountText = amount ? this.formatMoney(amount) : '-';
+    return remark ? `${amountText} - ${remark}` : amountText;
+  }
+
   onAttachmentChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.selectedAttachmentFile = input.files?.[0] ?? null;
@@ -485,6 +495,7 @@ export class NewInvoicesComponent implements OnInit {
       visible: false,
       invoice: null,
       level: null,
+      approvedAmount: null,
       remark: ''
     };
   }

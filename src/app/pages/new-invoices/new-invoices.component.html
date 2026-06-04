@@ -146,6 +146,7 @@
             <div class="approval-item" *ngFor="let log of selectedInvoice.approvalLogs">
               <strong>{{ titleCase(log.statusType) }}</strong>
               <div>{{ log.employeeCode || '' }} {{ log.createdByName || '-' }}</div>
+              <div *ngIf="log.approvedAmount">Approved Amount: {{ formatMoney(log.approvedAmount) }}</div>
               <small>{{ formatDateTime(log.createdAt) }}</small>
               <p *ngIf="log.remark">{{ log.remark }}</p>
             </div>
@@ -259,6 +260,9 @@
             <th>Created At</th>
             <th>Invoice Number</th>
             <th>Amount</th>
+            <th>SS Approval</th>
+            <th>Sales Approval</th>
+            <th>HO Approval</th>
             <th>Scheme Name</th>
             <th class="points-column">Points</th>
             <th>Attachment</th>
@@ -316,6 +320,9 @@
             <td>{{ formatDateTime(invoice.createdAt) }}</td>
             <td class="invoice-number">{{ invoice.invoiceNumber }}</td>
             <td>{{ formatMoney(invoice.amount) }}</td>
+            <td>{{ approvalStageText(invoice.ssApprovedAmount, invoice.ssApprovalRemark) }}</td>
+            <td>{{ approvalStageText(invoice.salesApprovedAmount, invoice.salesApprovalRemark) }}</td>
+            <td>{{ approvalStageText(invoice.hoApprovedAmount, invoice.hoApprovalRemark) }}</td>
             <td>
               <div class="name-cell">{{ invoice.schemeName || '-' }}</div>
             </td>
@@ -332,7 +339,7 @@
                 invoice.approvalStatusLabel }}</span></td>
           </tr>
           <tr *ngIf="!loading && filteredInvoices.length === 0">
-            <td colspan="17" class="empty-row">No invoices found</td>
+            <td colspan="20" class="empty-row">No invoices found</td>
           </tr>
         </tbody>
       </table>
@@ -437,6 +444,12 @@
           <span>Amount</span>
           <strong>{{ formatMoney(approvalDialog.invoice.amount) }}</strong>
         </div>
+      </div>
+
+      <div class="modal-field wide-field" *ngIf="approvalDialog.level !== 'reject'">
+        <label>Approved Invoice Amount <span class="req">*</span></label>
+        <input type="number" [(ngModel)]="approvalDialog.approvedAmount" min="0.01" step="0.01"
+          />
       </div>
 
       <div class="modal-field wide-field">

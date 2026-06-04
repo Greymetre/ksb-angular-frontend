@@ -32,6 +32,12 @@ export interface NewInvoiceItem {
   approvalStatus: number;
   approvalStatusLabel: string;
   approvalRemark?: string | null;
+  ssApprovedAmount?: number | null;
+  ssApprovalRemark?: string | null;
+  salesApprovedAmount?: number | null;
+  salesApprovalRemark?: string | null;
+  hoApprovedAmount?: number | null;
+  hoApprovalRemark?: string | null;
   createdBy: number;
   createdByName?: string | null;
   createdAt?: string | null;
@@ -47,6 +53,7 @@ export interface NewInvoiceApprovalLog {
   statusType: string;
   fromStatus?: number | null;
   toStatus?: number | null;
+  approvedAmount?: number | null;
   remark?: string | null;
   createdAt?: string | null;
 }
@@ -162,8 +169,8 @@ export class NewInvoiceService {
     }).pipe(catchError(error => this.handleError(error)));
   }
 
-  approve(id: number, level: 'ss' | 'sales' | 'ho', remark = ''): Observable<string> {
-    return this.http.post<ApiResponse>(`${this.baseUrl}/${id}/approve/${level}`, { remark }, { headers: this.authHeaders() }).pipe(
+  approve(id: number, level: 'ss' | 'sales' | 'ho', remark = '', approvedAmount?: number | null): Observable<string> {
+    return this.http.post<ApiResponse>(`${this.baseUrl}/${id}/approve/${level}`, { remark, approved_amount: approvedAmount }, { headers: this.authHeaders() }).pipe(
       map(response => this.responseMessage(response) || 'Invoice approved successfully'),
       catchError(error => this.handleError(error))
     );
@@ -235,6 +242,12 @@ export class NewInvoiceService {
       approvalStatus: this.readNumber(row['approval_status'] ?? row['approvalStatus']),
       approvalStatusLabel: this.readString(row['approval_status_label'] ?? row['approvalStatusLabel']) || 'Pending',
       approvalRemark: this.readNullableString(row['approval_remark'] ?? row['approvalRemark']),
+      ssApprovedAmount: this.nullableNumber(row['ss_approved_amount'] ?? row['ssApprovedAmount']),
+      ssApprovalRemark: this.readNullableString(row['ss_approval_remark'] ?? row['ssApprovalRemark']),
+      salesApprovedAmount: this.nullableNumber(row['sales_approved_amount'] ?? row['salesApprovedAmount']),
+      salesApprovalRemark: this.readNullableString(row['sales_approval_remark'] ?? row['salesApprovalRemark']),
+      hoApprovedAmount: this.nullableNumber(row['ho_approved_amount'] ?? row['hoApprovedAmount']),
+      hoApprovalRemark: this.readNullableString(row['ho_approval_remark'] ?? row['hoApprovalRemark']),
       createdBy: this.readNumber(row['created_by'] ?? row['createdBy']),
       createdByName: this.readNullableString(row['created_by_name'] ?? row['createdByName']),
       createdAt: this.readNullableString(row['created_at'] ?? row['createdAt']),
@@ -253,6 +266,7 @@ export class NewInvoiceService {
       statusType: this.readString(row['status_type'] ?? row['statusType']),
       fromStatus: this.readNumber(row['from_status'] ?? row['fromStatus']) || null,
       toStatus: this.readNumber(row['to_status'] ?? row['toStatus']) || null,
+      approvedAmount: this.nullableNumber(row['approved_amount'] ?? row['approvedAmount']),
       remark: this.readNullableString(row['remark']),
       createdAt: this.readNullableString(row['created_at'] ?? row['createdAt'])
     };
