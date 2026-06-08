@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { User, UserFilters, UserOption, UserPayload, UserService } from '../../services/user.service';
 import { SearchableSelectOption } from '../../shared/components/searchable-select/searchable-select.component';
 import { firstCaps } from '../../shared/pipes/first-caps.pipe';
+import { formatKolkataDateTime, kolkataDateInput, kolkataTodayInput } from '../../shared/utils/date-time';
 
 interface UserFormModel {
   id: number | null;
@@ -61,6 +62,7 @@ export class UsersComponent implements OnInit {
   showEntries = 10;
   currentPage = 1;
   searchQuery = '';
+  appliedSearchQuery = '';
   selectedUserType = 'employee';
   selectedActive = '';
   selectedDivisionId: number | null = null;
@@ -84,6 +86,7 @@ export class UsersComponent implements OnInit {
   roleDropdownOpen = false;
   roleDropdownSearch = '';
   private toastTimeoutId?: number;
+  private searchTimeoutId?: number;
 
   constructor(
     private userService: UserService,
@@ -97,7 +100,7 @@ export class UsersComponent implements OnInit {
   }
 
   get filteredUsers(): User[] {
-    const q = this.searchQuery.trim().toLowerCase();
+    const q = this.appliedSearchQuery.trim().toLowerCase();
     if (!q) return this.users;
 
     return this.users.filter(user =>
@@ -226,17 +229,30 @@ export class UsersComponent implements OnInit {
   }
 
   applyFilters(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
     this.currentPage = 1;
     this.loadUsers();
   }
 
+  scheduleSearch(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.appliedSearchQuery = this.searchQuery;
+      this.currentPage = 1;
+      this.loadUsers();
+      this.refreshView();
+    }, 400);
+  }
+
   clearFilters(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
     this.selectedUserType = 'employee';
     this.selectedActive = '';
     this.selectedDivisionId = null;
     this.selectedBranchId = '';
     this.selectedDepartmentId = null;
     this.searchQuery = '';
+    this.appliedSearchQuery = '';
     this.currentPage = 1;
     this.loadUsers();
   }
@@ -466,23 +482,13 @@ export class UsersComponent implements OnInit {
   }
 
   formatDate(value?: string | null): string {
-    if (!value) return '';
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-
-    return date.toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return formatKolkataDateTime(value, '');
   }
 
   private currentFilters(): UserFilters {
     return {
       userType: this.selectedUserType || undefined,
+      search: this.appliedSearchQuery || undefined,
       active: this.selectedActive || undefined,
       divisionId: this.selectedDivisionId,
       branchId: this.selectedBranchId || undefined,
@@ -553,10 +559,7 @@ export class UsersComponent implements OnInit {
   }
 
   private toDateInput(value?: string | null): string | null {
-    if (!value) return null;
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value.slice(0, 10);
-    return date.toISOString().slice(0, 10);
+    return value ? kolkataDateInput(value) : null;
   }
 
   private closeDropdowns(): void {
@@ -591,7 +594,7 @@ export class UsersComponent implements OnInit {
   }
 
   private dateStamp(): string {
-    return new Date().toISOString().slice(0, 10);
+    return kolkataTodayInput();
   }
 
   private refreshView(): void {

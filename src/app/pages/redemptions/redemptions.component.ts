@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { finalize, timeout } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { RedemptionCustomerOption, RedemptionFilter, RedemptionItem, RedemptionSchemeOption, RedemptionService, RedemptionSummary } from '../../services/redemption.service';
+import { formatKolkataDate, kolkataTodayInput } from '../../shared/utils/date-time';
 
 interface SelectOption {
   id: number | string;
@@ -35,6 +36,7 @@ export class RedemptionsComponent implements OnInit {
   errorMessage = '';
   toast = { visible: false, message: '', type: 'success' as 'success' | 'error' };
   private toastTimeoutId?: number;
+  private filterSearchTimeoutId?: number;
 
   readonly statusOptions: SelectOption[] = [
     { id: '', label: 'All Status' },
@@ -207,6 +209,14 @@ export class RedemptionsComponent implements OnInit {
     this.loadRedemptions();
   }
 
+  scheduleFilterSearch(): void {
+    if (this.filterSearchTimeoutId) window.clearTimeout(this.filterSearchTimeoutId);
+    this.filterSearchTimeoutId = window.setTimeout(() => {
+      this.loadRedemptions();
+      this.refreshView();
+    }, 400);
+  }
+
   customerLabel(customer: RedemptionCustomerOption): string {
     return [customer.name, customer.shopName, customer.mobileNumber].filter(Boolean).join(' - ');
   }
@@ -216,10 +226,7 @@ export class RedemptionsComponent implements OnInit {
   }
 
   formatDate(value?: string | null): string {
-    if (!value) return '-';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatKolkataDate(value, '-');
   }
 
   stepTitle(): string {
@@ -267,9 +274,6 @@ export class RedemptionsComponent implements OnInit {
   }
 
   private dateStamp(): string {
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${now.getFullYear()}${month}${day}`;
+    return kolkataTodayInput().replace(/-/g, '');
   }
 }

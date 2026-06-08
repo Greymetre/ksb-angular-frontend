@@ -106,8 +106,9 @@
       <div class="tab-body" *ngIf="activeTab === 'kyc'">
         <div class="document-grid" *ngIf="kycDocuments.length > 0">
           <div class="document-card" *ngFor="let document of kycDocuments" [class.approved]="document.status === 'approved'" [class.rejected]="document.status === 'rejected'">
-            <button type="button" class="document-preview" (click)="openKycPreview(document)">
-              <img [src]="document.url" [alt]="document.label"/>
+            <button type="button" class="document-preview" [class.empty]="!document.url" (click)="openKycPreview(document)" [disabled]="!document.url">
+              <img *ngIf="document.url" [src]="document.url" [alt]="document.label"/>
+              <span class="material-icons" *ngIf="!document.url">description</span>
             </button>
             <div class="document-meta">
               <div>
@@ -116,13 +117,19 @@
                   {{ statusLabel(document.status) }}
                 </span>
               </div>
+              <div class="document-details" *ngIf="document.rows.length">
+                <div class="document-detail-row" *ngFor="let row of document.rows">
+                  <span>{{ row.label }}</span>
+                  <strong>{{ row.value }}</strong>
+                </div>
+              </div>
               <small *ngIf="document.actionBy || document.actionAt">
                 {{ document.actionBy || '-' }} <span *ngIf="document.actionAt">/ {{ formatDate(document.actionAt) }}</span>
               </small>
               <p *ngIf="document.remark">{{ document.remark }}</p>
             </div>
             <div class="document-actions">
-              <button type="button" class="btn-view-doc" title="View" (click)="openKycPreview(document)">
+              <button type="button" class="btn-view-doc" title="View" (click)="openKycPreview(document)" [disabled]="!document.url">
                 <span class="material-icons">visibility</span>
               </button>
               <button type="button" class="btn-approve-doc" title="Approve" (click)="openKycDialog(document, 'approve')" *ngIf="canApproveKyc && document.status !== 'approved'">
@@ -250,7 +257,10 @@
       </div>
       <div class="kyc-action-body" *ngIf="kycDialog.document">
         <div class="kyc-action-summary">
-          <img [src]="kycDialog.document.url" [alt]="kycDialog.document.label"/>
+          <img *ngIf="kycDialog.document.url" [src]="kycDialog.document.url" [alt]="kycDialog.document.label"/>
+          <div class="kyc-action-placeholder" *ngIf="!kycDialog.document.url">
+            <span class="material-icons">description</span>
+          </div>
           <div>
             <strong>{{ kycDialog.document.label }}</strong>
             <span class="kyc-status" [class.approved]="kycDialog.document.status === 'approved'" [class.rejected]="kycDialog.document.status === 'rejected'">

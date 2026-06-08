@@ -4,6 +4,7 @@ import { Subscription, timeout } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { MasterConfig, MasterCrudService, MasterItem, MasterPayload } from '../../services/master-crud.service';
+import { formatKolkataDateTime } from '../../shared/utils/date-time';
 
 interface MasterRouteConfig extends MasterConfig {
   title: string;
@@ -46,6 +47,7 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
   showEntries = 10;
   currentPage = 1;
   searchQuery = '';
+  appliedSearchQuery = '';
   loading = false;
   saving = false;
   exporting = false;
@@ -57,6 +59,7 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
 
   private routeSub?: Subscription;
   private toastTimeoutId?: number;
+  private searchTimeoutId?: number;
 
   constructor(
     private route: ActivatedRoute,
@@ -70,6 +73,7 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
       this.config = data['masterConfig'] as MasterRouteConfig;
       this.items = [];
       this.searchQuery = '';
+      this.appliedSearchQuery = '';
       this.currentPage = 1;
       this.closeModal();
       this.loadItems();
@@ -79,10 +83,11 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.routeSub?.unsubscribe();
     if (this.toastTimeoutId) window.clearTimeout(this.toastTimeoutId);
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
   }
 
   get filteredItems(): MasterItem[] {
-    const q = this.searchQuery.trim().toLowerCase();
+    const q = this.appliedSearchQuery.trim().toLowerCase();
     if (!q) return this.items;
 
     return this.items.filter(item =>
@@ -143,6 +148,15 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
 
   resetPage(): void {
     this.currentPage = 1;
+  }
+
+  scheduleSearch(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.appliedSearchQuery = this.searchQuery;
+      this.currentPage = 1;
+      this.refreshView();
+    }, 400);
   }
 
   openCreateModal(): void {
@@ -264,22 +278,13 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
   }
 
   formatDate(value?: string | null): string {
-    if (!value) return '';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-
-    return date.toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return formatKolkataDateTime(value, '');
   }
 
   private buildPayload(): MasterPayload {
     if (this.config.nameField === 'branchName') {
       return {
+        active: this.form.active,
         branch_name: this.form.branchName.trim(),
         branch_code: this.form.branchCode.trim(),
         warehouse_id: this.form.warehouseId.trim()
@@ -287,14 +292,14 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
     }
 
     if (this.config.nameField === 'divisionName') {
-      return { division_name: this.form.divisionName.trim() };
+      return { active: this.form.active, division_name: this.form.divisionName.trim() };
     }
 
     if (this.config.nameField === 'designationName') {
-      return { designation_name: this.form.designationName.trim() };
+      return { active: this.form.active, designation_name: this.form.designationName.trim() };
     }
 
-    return { name: this.form.name.trim() };
+    return { active: this.form.active, name: this.form.name.trim() };
   }
 
   private displayFormName(): string {

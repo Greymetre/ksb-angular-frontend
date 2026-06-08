@@ -173,8 +173,13 @@
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+  margin-bottom: 12px;
+}
+
+.approval-summary-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   margin-bottom: 14px;
 }
 
@@ -187,6 +192,8 @@
 }
 
 .summary-tile {
+  border: 0;
+  text-align: left;
   padding: 14px 16px;
 
   span {
@@ -200,6 +207,20 @@
     color: var(--text-dark);
     font-size: 18px;
     font-weight: 600;
+  }
+}
+
+.summary-action {
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .1);
+    transform: translateY(-1px);
+  }
+
+  &.active {
+    box-shadow: 0 0 0 2px rgba(0, 170, 219, .25), 0 2px 8px rgba(0, 0, 0, .06);
   }
 }
 

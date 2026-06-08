@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { NewInvoiceFilter, NewInvoiceItem, NewInvoicePayload, NewInvoiceService, NewInvoiceSummary, RetailerOption } from '../../services/new-invoice.service';
 import { API_ORIGIN } from '../../config/api.config';
 import { isPdfOrImageFile } from '../../shared/utils/file-validation';
+import { formatKolkataDate, formatKolkataLongDateTime, kolkataDateInput, kolkataTodayInput } from '../../shared/utils/date-time';
 
 interface SelectOption {
   id: number | string;
@@ -62,6 +63,7 @@ export class NewInvoicesComponent implements OnInit {
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
   private readonly backendOrigin = this.resolveBackendOrigin();
+  private filterSearchTimeoutId?: number;
 
   readonly approvalStatusOptions: SelectOption[] = [
     { id: '', label: 'All Status' },
@@ -100,6 +102,18 @@ export class NewInvoicesComponent implements OnInit {
 
   get pageStart(): number {
     return (this.currentPage - 1) * this.safeShowEntries;
+  }
+
+  get pendingFromSs(): number {
+    return this.invoices.filter(invoice => invoice.approvalStatus === 0).length;
+  }
+
+  get pendingFromSales(): number {
+    return this.invoices.filter(invoice => invoice.approvalStatus === 1).length;
+  }
+
+  get pendingFromHo(): number {
+    return this.invoices.filter(invoice => invoice.approvalStatus === 2).length;
   }
 
   get canCreate(): boolean {
@@ -365,6 +379,21 @@ export class NewInvoicesComponent implements OnInit {
     this.loadInvoices();
   }
 
+  filterByApprovalStatus(status: number | null): void {
+    this.filter.approval_status = status;
+    this.currentPage = 1;
+    this.loadInvoices();
+  }
+
+  scheduleFilterSearch(): void {
+    if (this.filterSearchTimeoutId) window.clearTimeout(this.filterSearchTimeoutId);
+    this.filterSearchTimeoutId = window.setTimeout(() => {
+      this.currentPage = 1;
+      this.loadInvoices();
+      this.refreshView();
+    }, 400);
+  }
+
   retailerLabel(retailer: RetailerOption): string {
     return [retailer.ownerName, retailer.shopName, retailer.mobileNumber].filter(Boolean).join(' - ');
   }
@@ -374,17 +403,11 @@ export class NewInvoicesComponent implements OnInit {
   }
 
   formatDate(value?: string | null): string {
-    if (!value) return '-';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatKolkataDate(value, '-');
   }
 
   formatDateTime(value?: string | null): string {
-    if (!value) return '-';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return formatKolkataLongDateTime(value, '-');
   }
 
   canMoveToStatus(invoice: NewInvoiceItem, status: number): boolean {
@@ -468,10 +491,7 @@ export class NewInvoicesComponent implements OnInit {
   }
 
   private toDateInput(value: string): string {
-    if (!value) return '';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value.slice(0, 10);
-    return date.toISOString().slice(0, 10);
+    return kolkataDateInput(value);
   }
 
   private emptyForm(): InvoiceFormModel {
@@ -479,7 +499,7 @@ export class NewInvoicesComponent implements OnInit {
       id: null,
       secondaryCustomerId: null,
       invoiceNumber: '',
-      invoiceDate: new Date().toISOString().slice(0, 10),
+      invoiceDate: kolkataTodayInput(),
       amount: null,
       points: 0,
       attachment: null
@@ -540,7 +560,7 @@ export class NewInvoicesComponent implements OnInit {
   }
 
   private dateStamp(): string {
-    return new Date().toISOString().slice(0, 10);
+    return kolkataTodayInput();
   }
 
   private resolveBackendOrigin(): string {

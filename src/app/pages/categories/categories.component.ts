@@ -19,6 +19,8 @@ export class CategoriesComponent {
   showEntries = 10;
   currentPage = 1;
   searchQuery = '';
+  appliedSearchQuery = '';
+  private searchTimeoutId?: number;
   showModal = false;
   editModal = false;
   modalData = { categoryName: '', sapCode: '' };
@@ -30,8 +32,8 @@ export class CategoriesComponent {
   ];
 
   get filtered() {
-    if (!this.searchQuery) return this.categories;
-    const q = this.searchQuery.toLowerCase();
+    if (!this.appliedSearchQuery) return this.categories;
+    const q = this.appliedSearchQuery.toLowerCase();
     return this.categories.filter(c => c.categoryName.toLowerCase().includes(q) || c.createdBy.toLowerCase().includes(q));
   }
 
@@ -45,6 +47,14 @@ export class CategoriesComponent {
 
   resetPage(): void {
     this.currentPage = 1;
+  }
+
+  scheduleSearch(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.appliedSearchQuery = this.searchQuery;
+      this.currentPage = 1;
+    }, 400);
   }
 
   openAddModal() { this.modalData = { categoryName: '', sapCode: '' }; this.showModal = true; }

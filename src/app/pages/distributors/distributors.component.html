@@ -3,8 +3,7 @@
   <div class="page-top-bar">
     <div class="title-count">Distributors List ({{ filtered.length }})</div>
     <div class="top-actions">
-      <input class="search-input" [(ngModel)]="searchQuery" placeholder="Search anything..."/>
-      <button class="btn-filter"><span class="material-icons">tune</span> FILTER</button>
+      <input class="search-input" [(ngModel)]="searchQuery" (ngModelChange)="scheduleSearch()" placeholder="Search anything..."/>
       <button class="btn-add-new"><span class="material-icons">add_circle</span> ADD NEW DISTRIBUTOR</button>
     </div>
   </div>

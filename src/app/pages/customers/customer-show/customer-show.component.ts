@@ -6,6 +6,7 @@ import { CustomerItem, CustomerService } from '../../../services/customer.servic
 import { NewInvoiceItem, NewInvoiceService } from '../../../services/new-invoice.service';
 import { RedemptionItem, RedemptionService } from '../../../services/redemption.service';
 import { API_ORIGIN } from '../../../config/api.config';
+import { formatKolkataDate, formatKolkataDateTime } from '../../../shared/utils/date-time';
 
 interface InfoRow {
   label: string;
@@ -28,6 +29,7 @@ interface KycDocument {
   key: string;
   label: string;
   url: string;
+  rows: InfoRow[];
   status: 'pending' | 'approved' | 'rejected';
   remark: string;
   actionBy: string;
@@ -64,6 +66,24 @@ export class CustomerShowComponent implements OnInit {
   toast = { visible: false, message: '', type: 'success' as 'success' | 'error' };
   private readonly backendOrigin = this.resolveBackendOrigin();
   private toastTimeoutId?: number;
+  private readonly curatedCustomKeys = new Set([
+    'first_name', 'last_name', 'owner_name', 'mobile_number', 'mobile_numbers', 'whatsapp_number', 'alternate_mobile',
+    'gender', 'address1', 'address_line', 'shipping_address', 'belt_area_market_name', 'gps_location',
+    'customer_type', 'name', 'mobile', 'email', 'customer_code', 'distributor_code', 'legal_name', 'shop_name',
+    'trade_name', 'parent_id', 'distributor_name', 'distributor_name_name', 'agri_distributor',
+    'agri_distributor_name', 'beat_id', 'beat_route', 'manager_name', 'manager_phone', 'contact_person',
+    'registration_type', 'business_status', 'business_start_date', 'customer_segment', 'sales_executive_id',
+    'supervisor_id', 'employee_id', 'gst_number', 'gstin_no', 'pan_number', 'pan_no', 'aadhar_no',
+    'aadhaar_no', 'aadhaar_number', 'aadhar_number', 'bank_account_type', 'bank_name', 'bank_account_number',
+    'bank_account_number_confirm', 'ifsc_code', 'account_holder_name', 'profile_image', 'shop_image',
+    'shop_photo', 'gst_attachment', 'gst_image', 'pan_attachment', 'pan_image', 'aadhar_attachment',
+    'aadhaar_attachment', 'adharcard', 'bank_proof', 'blank_cheque', 'passbook', 'mou_file', 'documents',
+    'country_id', 'state_id', 'district_id', 'city_id', 'pincode_id', 'created_by', 'updated_by',
+    'gst_kyc_status', 'gst_kyc_remark', 'gst_kyc_action_by', 'gst_kyc_action_by_name', 'gst_kyc_action_at',
+    'pan_kyc_status', 'pan_kyc_remark', 'pan_kyc_action_by', 'pan_kyc_action_by_name', 'pan_kyc_action_at',
+    'aadhar_kyc_status', 'aadhar_kyc_remark', 'aadhar_kyc_action_by', 'aadhar_kyc_action_by_name', 'aadhar_kyc_action_at',
+    'bank_kyc_status', 'bank_kyc_remark', 'bank_kyc_action_by', 'bank_kyc_action_by_name', 'bank_kyc_action_at'
+  ]);
 
   readonly tabs: TabItem[] = [
     { id: 'details', label: 'Details', icon: 'preview' },
@@ -148,12 +168,17 @@ export class CustomerShowComponent implements OnInit {
     return this.presentRows([
       { label: 'Customer Type', value: this.customer.customerTypeName },
       { label: 'Customer Code', value: this.customer.customerCode || this.field('distributor_code') },
+      { label: 'Legal Name', value: this.field('legal_name') },
       { label: 'Shop Name', value: this.field('shop_name') },
       { label: 'Trade / Business Name', value: this.field('trade_name') },
+      { label: 'Primary Contact Person', value: this.field('contact_person') },
       { label: 'Parent', value: this.customer.parentName },
       { label: 'Distributor', value: this.lookupName('distributor_name') },
       { label: 'Agri Distributor', value: this.lookupName('agri_distributor') },
       { label: 'Beat', value: this.field('beat_id') || this.field('beat_route') },
+      { label: 'Assigned Sales Executive', value: this.lookupName('sales_executive_id') },
+      { label: 'Supervisor / ASM / RSM', value: this.lookupName('supervisor_id') },
+      { label: 'Employee', value: this.lookupName('employee_id') },
       { label: 'Manager Name', value: this.field('manager_name') },
       { label: 'Manager Phone', value: this.field('manager_phone') },
       { label: 'Created By', value: this.customer.createdByName || this.customer.createdBy?.toString() },
@@ -165,7 +190,7 @@ export class CustomerShowComponent implements OnInit {
     return this.presentRows([
       { label: 'GST Number', value: this.field('gst_number') || this.field('gstin_no') },
       { label: 'PAN Number', value: this.field('pan_number') || this.field('pan_no') },
-      { label: 'Aadhar No', value: this.field('aadhar_no') },
+      { label: 'Aadhaar Number', value: this.firstField('aadhar_no', 'aadhaar_no', 'aadhaar_number', 'aadhar_number') },
       { label: 'Registration Type', value: this.field('registration_type') },
       { label: 'Business Status', value: this.field('business_status') },
       { label: 'Business Start Date', value: this.field('business_start_date') },
@@ -177,7 +202,7 @@ export class CustomerShowComponent implements OnInit {
     return this.presentRows([
       { label: 'Bank Account Type', value: this.field('bank_account_type') },
       { label: 'Bank Name', value: this.field('bank_name') },
-      { label: 'Account Number', value: this.maskAccount(this.field('bank_account_number')) },
+      { label: 'Account Number', value: this.field('bank_account_number') },
       { label: 'IFSC Code', value: this.field('ifsc_code') },
       { label: 'Account Holder Name', value: this.field('account_holder_name') }
     ]);
@@ -185,11 +210,17 @@ export class CustomerShowComponent implements OnInit {
 
   get kycDocuments(): KycDocument[] {
     return [
-      this.kycDocument('gst', 'GST', this.firstField('gst_attachment', 'gst_image')),
-      this.kycDocument('pan', 'PAN', this.firstField('pan_attachment', 'pan_image')),
-      this.kycDocument('aadhar', 'Aadhaar Card', this.firstField('aadhar_attachment', 'aadhaar_attachment', 'adharcard')),
-      this.kycDocument('bank', 'Blank Cheque / Passbook', this.firstField('bank_proof', 'blank_cheque', 'passbook'))
-    ].filter(document => !!document.url);
+      this.kycDocument('gst', 'GST', this.firstField('gst_attachment', 'gst_image'), [
+        { label: 'GST Number', value: this.field('gst_number') || this.field('gstin_no') }
+      ]),
+      this.kycDocument('pan', 'PAN', this.firstField('pan_attachment', 'pan_image'), [
+        { label: 'PAN Number', value: this.field('pan_number') || this.field('pan_no') }
+      ]),
+      this.kycDocument('aadhar', 'Aadhaar Card', this.firstField('aadhar_attachment', 'aadhaar_attachment', 'adharcard'), [
+        { label: 'Aadhaar Number', value: this.firstField('aadhar_no', 'aadhaar_no', 'aadhaar_number', 'aadhar_number') }
+      ]),
+      this.kycDocument('bank', 'Blank Cheque / Passbook', this.firstField('bank_proof', 'blank_cheque', 'passbook'), this.bankRows)
+    ].filter(document => !!document.url || document.rows.length > 0);
   }
 
   get canApproveKyc(): boolean {
@@ -198,15 +229,8 @@ export class CustomerShowComponent implements OnInit {
 
   get customRows(): InfoRow[] {
     if (!this.customer) return [];
-    const visibleKeys = new Set([
-      'legal_name', 'shop_name', 'owner_name', 'mobile_numbers', 'address1', 'address_line',
-      'shipping_address', 'gst_number', 'pan_number', 'bank_account_number', 'profile_image',
-      'shop_image', 'shop_photo', 'gst_attachment', 'pan_attachment', 'aadhar_attachment', 'aadhaar_attachment',
-      'adharcard', 'bank_proof', 'blank_cheque', 'passbook', 'mou_file',
-      'documents', 'country_id', 'state_id', 'district_id', 'city_id', 'pincode_id'
-    ]);
     return Object.entries(this.customer.customFields)
-      .filter(([key, value]) => !visibleKeys.has(key) && !!value)
+      .filter(([key, value]) => !this.curatedCustomKeys.has(key) && !!value)
       .map(([key, value]) => ({ label: this.titleCase(key), value }));
   }
 
@@ -286,6 +310,7 @@ export class CustomerShowComponent implements OnInit {
   }
 
   openKycPreview(document: KycDocument): void {
+    if (!document.url) return;
     this.selectedKycDocument = document;
     this.refreshView();
   }
@@ -351,17 +376,11 @@ export class CustomerShowComponent implements OnInit {
   }
 
   formatDate(value?: string | null): string {
-    if (!value) return '';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return formatKolkataDateTime(value, '');
   }
 
   formatShortDate(value?: string | null): string {
-    if (!value) return '-';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatKolkataDate(value, '-');
   }
 
   statusClass(status: number): string {
@@ -387,12 +406,13 @@ export class CustomerShowComponent implements OnInit {
     return `${this.kycDialog.action === 'approve' ? 'Approve' : 'Reject'} ${this.kycDialog.document.label}`;
   }
 
-  private kycDocument(key: string, label: string, path: string): KycDocument {
+  private kycDocument(key: string, label: string, path: string, rows: InfoRow[]): KycDocument {
     const prefix = `${key}_kyc`;
     return {
       key,
       label,
       url: this.mediaUrl(path),
+      rows: this.presentRows(rows),
       status: this.kycStatus(this.field(`${prefix}_status`)),
       remark: this.field(`${prefix}_remark`),
       actionBy: this.field(`${prefix}_action_by_name`) || this.field(`${prefix}_action_by`),
@@ -432,11 +452,6 @@ export class CustomerShowComponent implements OnInit {
   private lookupName(key: string): string {
     const nameKey = `${key}_name`;
     return this.field(nameKey) || this.field(key);
-  }
-
-  private maskAccount(value: string): string {
-    if (!value) return '';
-    return value.length <= 4 ? value : `${'*'.repeat(Math.max(0, value.length - 4))}${value.slice(-4)}`;
   }
 
   private presentRows(rows: InfoRow[]): InfoRow[] {

@@ -3,6 +3,7 @@ import { finalize, timeout } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { UserOption } from '../../services/user.service';
 import { UserTarget, UserTargetFilters, UserTargetPayload, UserTargetService } from '../../services/user-target.service';
+import { kolkataTodayInput } from '../../shared/utils/date-time';
 
 interface ToastModel {
   visible: boolean;
@@ -30,6 +31,7 @@ export class UserTargetsComponent implements OnInit {
   showEntries = 10;
   currentPage = 1;
   searchQuery = '';
+  appliedSearchQuery = '';
   selectedBranchId: number | null = null;
   selectedUserId: number | null = null;
   selectedDivisionId: number | null = null;
@@ -47,6 +49,7 @@ export class UserTargetsComponent implements OnInit {
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
   private toastTimeoutId?: number;
+  private searchTimeoutId?: number;
 
   form: UserTargetPayload & { id: number | null } = this.emptyForm();
 
@@ -62,7 +65,7 @@ export class UserTargetsComponent implements OnInit {
   }
 
   get filteredTargets(): UserTarget[] {
-    const query = this.searchQuery.trim().toLowerCase();
+    const query = this.appliedSearchQuery.trim().toLowerCase();
     if (!query) return this.targets;
     return this.targets.filter(row =>
       (row.employeeCode ?? '').toLowerCase().includes(query)
@@ -145,10 +148,22 @@ export class UserTargetsComponent implements OnInit {
   }
 
   applyFilters(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
     this.loadTargets();
   }
 
+  scheduleSearch(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.appliedSearchQuery = this.searchQuery;
+      this.currentPage = 1;
+      this.loadTargets();
+      this.refreshView();
+    }, 400);
+  }
+
   clearFilters(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
     this.selectedBranchId = null;
     this.selectedUserId = null;
     this.selectedDivisionId = null;
@@ -156,6 +171,7 @@ export class UserTargetsComponent implements OnInit {
     this.selectedMonth = '';
     this.selectedFinancialYear = '';
     this.searchQuery = '';
+    this.appliedSearchQuery = '';
     this.loadTargets();
   }
 
@@ -285,7 +301,7 @@ export class UserTargetsComponent implements OnInit {
       type: this.selectedType || null,
       month: this.selectedMonth || null,
       financialYear: this.selectedFinancialYear || null,
-      search: null
+      search: this.appliedSearchQuery || null
     };
   }
 
@@ -319,7 +335,7 @@ export class UserTargetsComponent implements OnInit {
   }
 
   private dateStamp(): string {
-    return new Date().toISOString().slice(0, 10);
+    return kolkataTodayInput();
   }
 
   private refreshView(): void {

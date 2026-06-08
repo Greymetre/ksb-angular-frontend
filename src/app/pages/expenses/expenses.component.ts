@@ -6,6 +6,7 @@ import { Expense, ExpenseOptions, ExpensePayload, ExpenseService } from '../../s
 import { ExpenseType } from '../../services/expense-type.service';
 import { API_ORIGIN } from '../../config/api.config';
 import { hasOnlyPdfOrImageFiles } from '../../shared/utils/file-validation';
+import { formatKolkataDateTime, kolkataTodayInput } from '../../shared/utils/date-time';
 
 interface ToastModel {
   visible: boolean;
@@ -39,6 +40,7 @@ export class ExpensesComponent implements OnInit {
   showEntries = 10;
   currentPage = 1;
   searchQuery = '';
+  appliedSearchQuery = '';
   showFilters = false;
   loading = false;
   saving = false;
@@ -48,6 +50,7 @@ export class ExpensesComponent implements OnInit {
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
   private toastTimeoutId?: number;
+  private searchTimeoutId?: number;
 
   selectedUserId: number | null = null;
   selectedExpenseTypeId: number | null = null;
@@ -76,7 +79,7 @@ export class ExpensesComponent implements OnInit {
   }
 
   get filteredRows(): Expense[] {
-    const query = this.searchQuery.trim().toLowerCase();
+    const query = this.appliedSearchQuery.trim().toLowerCase();
     if (!query) return this.rows;
     return this.rows.filter(row =>
       String(row.id).includes(query)
@@ -186,10 +189,21 @@ export class ExpensesComponent implements OnInit {
   }
 
   applyFilters(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
     this.loadRows();
   }
 
+  scheduleSearch(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.appliedSearchQuery = this.searchQuery;
+      this.currentPage = 1;
+      this.refreshView();
+    }, 400);
+  }
+
   clearFilters(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
     this.selectedUserId = null;
     this.selectedExpenseTypeId = null;
     this.selectedBranchId = null;
@@ -200,6 +214,7 @@ export class ExpensesComponent implements OnInit {
     this.endDate = '';
     this.expenseId = null;
     this.searchQuery = '';
+    this.appliedSearchQuery = '';
     this.loadRows();
   }
 
@@ -449,13 +464,17 @@ export class ExpensesComponent implements OnInit {
     return this.statuses.find(item => item.id === status)?.name || 'Pending';
   }
 
+  formatDateTime(value?: string | null): string {
+    return formatKolkataDateTime(value, '-');
+  }
+
   private get safeShowEntries(): number {
     const value = Number(this.showEntries);
     return Number.isFinite(value) && value > 0 ? Math.floor(value) : 10;
   }
 
   private emptyForm(): ExpensePayload & { id: number | null } {
-    return { id: null, expensesType: null, userId: null, date: new Date().toISOString().slice(0, 10), claimAmount: null, note: '', attachments: [] };
+    return { id: null, expensesType: null, userId: null, date: kolkataTodayInput(), claimAmount: null, note: '', attachments: [] };
   }
 
   private emptyStatusDialog(): StatusDialogModel {

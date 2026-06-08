@@ -34,7 +34,7 @@
       </div>
       <div class="search-group">
         <label>Search:</label>
-        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="resetPage()" class="table-search"/>
+        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="scheduleSearch()" class="table-search"/>
       </div>
     </div>
   </div>
@@ -138,6 +138,14 @@
         <div class="modal-field" *ngIf="config.hasGstCode">
           <label>GST Code <span class="req">*</span></label>
           <input type="text" [(ngModel)]="form.gstCode" maxlength="20"/>
+        </div>
+
+        <div class="modal-field">
+          <label>Active</label>
+          <select [(ngModel)]="form.active">
+            <option value="Y">Active</option>
+            <option value="N">Inactive</option>
+          </select>
         </div>
       </div>
 

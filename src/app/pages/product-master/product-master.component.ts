@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { ProductFamily, ProductItem, ProductSegment, ProductService } from '../../services/product.service';
 import { API_ORIGIN } from '../../config/api.config';
 import { isPdfOrImageFile } from '../../shared/utils/file-validation';
+import { formatKolkataDateTime } from '../../shared/utils/date-time';
 
 type Mode = 'segment' | 'family' | 'product';
 
@@ -39,6 +40,7 @@ export class ProductMasterComponent implements OnInit {
   toast = { visible: false, message: '', type: 'success' as 'success' | 'error' };
   form = this.emptyForm();
   private toastTimeoutId?: number;
+  private searchTimeoutId?: number;
   private readonly backendOrigin = this.resolveBackendOrigin();
 
   constructor(
@@ -130,7 +132,16 @@ export class ProductMasterComponent implements OnInit {
     this.loadRows();
   }
 
+  scheduleSearch(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.applyFilters();
+      this.refreshView();
+    }, 400);
+  }
+
   clearFilters(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
     this.searchQuery = '';
     this.selectedSegmentId = null;
     this.selectedFamilyId = null;
@@ -240,13 +251,21 @@ export class ProductMasterComponent implements OnInit {
   exportRows(): void {
     this.exporting = true;
     this.showToast('Exporting...', 'success');
-    this.productService.export(this.path).pipe(finalize(() => {
+    this.productService.export(this.path, this.currentFilters()).pipe(finalize(() => {
       this.exporting = false;
       this.refreshView();
     })).subscribe({
       next: blob => this.download(blob, `${this.path}.xlsx`),
       error: error => this.showToast(error.message, 'error')
     });
+  }
+
+  private currentFilters(): Record<string, unknown> {
+    return {
+      search: this.searchQuery.trim(),
+      segment_id: this.selectedSegmentId,
+      family_id: this.mode === 'product' ? this.selectedFamilyId : null
+    };
   }
 
   downloadTemplate(): void {
@@ -301,9 +320,7 @@ export class ProductMasterComponent implements OnInit {
   }
 
   formatDate(value?: string | null): string {
-    if (!value) return '';
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? value : date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return formatKolkataDateTime(value, '');
   }
 
   private emptyForm(): ProductItem & ProductFamily & ProductSegment {

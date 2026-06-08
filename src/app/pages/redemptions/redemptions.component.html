@@ -20,7 +20,7 @@
     <div class="filter-grid">
       <div class="filter-field">
         <label>Search</label>
-        <input type="text" [(ngModel)]="filter.search" (keyup.enter)="loadRedemptions()" placeholder="Transaction, customer, mobile"/>
+        <input type="text" [(ngModel)]="filter.search" (ngModelChange)="scheduleFilterSearch()" placeholder="Transaction, customer, mobile"/>
       </div>
       <div class="filter-field">
         <label>Status</label>
@@ -31,7 +31,6 @@
         <app-searchable-select [options]="modeOptions" [selected]="filter.redeem_mode || ''" placeholder="All Modes" (selectedChange)="onModeFilterChange($event)"></app-searchable-select>
       </div>
       <div class="filter-actions">
-        <button type="button" class="mini-btn" (click)="loadRedemptions()">Filter</button>
         <button type="button" class="mini-btn light" (click)="filter = {}; loadRedemptions()">Clear</button>
       </div>
     </div>
@@ -162,7 +161,7 @@
         <div class="bank-card">
           <div><span>Account Holder</span><strong>{{ selectedCustomer.accountHolder || '-' }}</strong></div>
           <div><span>Bank Name</span><strong>{{ selectedCustomer.bankName || '-' }}</strong></div>
-          <div><span>Account Number</span><strong>{{ selectedCustomer.maskedAccountNumber || '-' }}</strong></div>
+          <div><span>Account Number</span><strong>{{ selectedCustomer.accountNumber || '-' }}</strong></div>
           <div><span>IFSC Code</span><strong>{{ selectedCustomer.ifscCode || '-' }}</strong></div>
           <div><span>Available Points</span><strong>{{ selectedScheme.availablePoints | number:'1.0-2' }}</strong></div>
         </div>

@@ -100,8 +100,12 @@ export class ProductService {
       .pipe(map(response => this.message(response)), catchError(error => this.handleError(error)));
   }
 
-  export(path: string): Observable<Blob> {
-    return this.http.get(`${this.baseUrl}/${path}/export`, { headers: this.authHeaders(), responseType: 'blob' })
+  export(path: string, values: Record<string, unknown> = {}): Observable<Blob> {
+    let params = new HttpParams();
+    Object.entries(values).forEach(([name, value]) => {
+      if (value !== undefined && value !== null && value !== '') params = params.set(name, String(value));
+    });
+    return this.http.get(`${this.baseUrl}/${path}/export`, { headers: this.authHeaders(), params, responseType: 'blob' })
       .pipe(catchError(error => this.handleError(error)));
   }
 

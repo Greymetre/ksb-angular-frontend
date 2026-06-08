@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { AddressOption, CustomerFilter, CustomerItem, CustomerService, LocationDetails } from '../../services/customer.service';
 import { UserService } from '../../services/user.service';
 import { hasOnlyPdfOrImageFiles } from '../../shared/utils/file-validation';
+import { formatKolkataDateTime } from '../../shared/utils/date-time';
 
 interface CustomerTypeOption {
   id: number;
@@ -49,7 +50,8 @@ export class CustomersComponent implements OnInit {
 
   readonly customerTypes: CustomerTypeOption[] = [
     { id: 1, label: 'Distributor' },
-    { id: 2, label: 'Retailer' }
+    { id: 2, label: 'Retailer' },
+    { id: 3, label: 'Influencers' }
   ];
 
   readonly distributorStatuses = ['Active', 'Inactive', 'On Hold'];
@@ -66,7 +68,8 @@ export class CustomersComponent implements OnInit {
   readonly allCustomerTypeOptions: SelectOption[] = [
     { id: '', label: 'All Customer Types' },
     { id: 1, label: 'Distributor' },
-    { id: 2, label: 'Retailer' }
+    { id: 2, label: 'Retailer' },
+    { id: 3, label: 'Influencers' }
   ];
   readonly registrationTypes = ['Proprietorship', 'Partnership', 'Pvt Ltd', 'LLP'];
   readonly customerSegments = ['AGRI', 'DOMESTIC'];
@@ -111,6 +114,7 @@ export class CustomersComponent implements OnInit {
   filterPincodes: SelectOption[] = [];
 
   private toastTimeoutId?: number;
+  private filterSearchTimeoutId?: number;
   private pincodeSearchTimeoutId?: number;
 
   constructor(
@@ -142,7 +146,7 @@ export class CustomersComponent implements OnInit {
   }
 
   get isRetailer(): boolean {
-    return this.form.customerType === 2;
+    return this.form.customerType === 2 || this.form.customerType === 3;
   }
 
   get canCreate(): boolean {
@@ -193,6 +197,15 @@ export class CustomersComponent implements OnInit {
         this.refreshView();
       }
     });
+  }
+
+  scheduleFilterSearch(): void {
+    if (this.filterSearchTimeoutId) window.clearTimeout(this.filterSearchTimeoutId);
+    this.filterSearchTimeoutId = window.setTimeout(() => {
+      this.currentPage = 1;
+      this.loadCustomers();
+      this.refreshView();
+    }, 400);
   }
 
   resetPage(): void {
@@ -595,10 +608,7 @@ export class CustomersComponent implements OnInit {
   }
 
   formatDate(value?: string | null): string {
-    if (!value) return '';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return formatKolkataDateTime(value, '');
   }
 
   private buildPayload(): FormData {

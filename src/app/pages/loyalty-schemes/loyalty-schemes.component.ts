@@ -8,6 +8,7 @@ import {
   LoyaltySchemePayload,
   LoyaltySchemeService
 } from '../../services/loyalty-scheme.service';
+import { formatKolkataDate } from '../../shared/utils/date-time';
 
 interface SchemeFormModel {
   id: number | null;
@@ -47,7 +48,7 @@ interface ToastModel {
 export class LoyaltySchemesComponent implements OnInit {
   schemes: LoyaltyScheme[] = [];
   options: LoyaltySchemeOptions = { branches: [], zones: [], states: [], customers: [] };
-  customerTypes = ['Retailer', 'Plumber', 'Retailer + Plumber', 'Sub-Dealer', 'Distributor'];
+  customerTypes = ['Retailer', 'Influencers', 'Plumber', 'Retailer + Plumber', 'Sub-Dealer', 'Distributor'];
   schemeTags = ['Regular', 'Booster'];
   areaScopes = ['All', 'Branch', 'Zone', 'State', 'Customer'];
   basedOnOptions = ['Value', 'Percentage'];
@@ -56,6 +57,7 @@ export class LoyaltySchemesComponent implements OnInit {
   showEntries = 10;
   currentPage = 1;
   searchQuery = '';
+  appliedSearchQuery = '';
   selectedStatus = '';
   loading = false;
   saving = false;
@@ -67,6 +69,7 @@ export class LoyaltySchemesComponent implements OnInit {
   form: SchemeFormModel = this.emptyForm();
   private toastTimeoutId?: number;
   private codeGenerateTimeoutId?: number;
+  private searchTimeoutId?: number;
 
   constructor(
     private schemeService: LoyaltySchemeService,
@@ -80,7 +83,7 @@ export class LoyaltySchemesComponent implements OnInit {
   }
 
   get filteredSchemes(): LoyaltyScheme[] {
-    const q = this.searchQuery.trim().toLowerCase();
+    const q = this.appliedSearchQuery.trim().toLowerCase();
     if (!q) return this.schemes;
 
     return this.schemes.filter(scheme =>
@@ -155,12 +158,24 @@ export class LoyaltySchemesComponent implements OnInit {
   }
 
   applyFilters(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
     this.currentPage = 1;
     this.loadSchemes();
   }
 
+  scheduleSearch(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.appliedSearchQuery = this.searchQuery;
+      this.currentPage = 1;
+      this.refreshView();
+    }, 400);
+  }
+
   clearFilters(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
     this.searchQuery = '';
+    this.appliedSearchQuery = '';
     this.selectedStatus = '';
     this.currentPage = 1;
     this.loadSchemes();
@@ -297,10 +312,7 @@ export class LoyaltySchemesComponent implements OnInit {
   }
 
   formatDate(value?: string | null): string {
-    if (!value) return '';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatKolkataDate(value, '');
   }
 
   rewardLabel(): string {

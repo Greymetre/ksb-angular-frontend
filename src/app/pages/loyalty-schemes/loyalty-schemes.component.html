@@ -12,13 +12,12 @@
   <div class="filter-panel" *ngIf="showFilters">
     <div class="filter-field">
       <label>Status</label>
-      <select [(ngModel)]="selectedStatus">
+      <select [(ngModel)]="selectedStatus" (ngModelChange)="applyFilters()">
         <option value="">All</option>
         <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
       </select>
     </div>
     <div class="filter-actions">
-      <button type="button" class="mini-btn" (click)="applyFilters()">Filter</button>
       <button type="button" class="mini-btn light" (click)="clearFilters()">Clear</button>
     </div>
   </div>
@@ -31,7 +30,7 @@
       <button class="btn-icon-round add-btn" title="Add" (click)="openCreate()" *ngIf="canCreate"><span class="material-icons">add</span></button>
       <div class="search-group">
         <label>Search:</label>
-        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="resetPage()" class="table-search"/>
+        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="scheduleSearch()" class="table-search"/>
       </div>
     </div>
   </div>

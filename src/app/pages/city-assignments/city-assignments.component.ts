@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild } from '@an
 import { finalize, timeout } from 'rxjs/operators';
 import { CityAssignment, CityAssignmentOption, CityAssignmentOptions, CityAssignmentService } from '../../services/city-assignment.service';
 import { SearchableSelectOption } from '../../shared/components/searchable-select/searchable-select.component';
+import { formatKolkataDateTime } from '../../shared/utils/date-time';
 
 @Component({
   standalone: false,
@@ -16,6 +17,7 @@ export class CityAssignmentsComponent implements OnInit {
   options: CityAssignmentOptions = { users: [], cities: [] };
   form = { user_id: null as number | null, city_ids: [] as number[] };
   search = '';
+  appliedSearch = '';
   showEntries = 10;
   currentPage = 1;
   showModal = false;
@@ -27,6 +29,7 @@ export class CityAssignmentsComponent implements OnInit {
   errorMessage = '';
   toast = { visible: false, message: '', type: 'success' as 'success' | 'error' };
   private toastTimeoutId?: number;
+  private searchTimeoutId?: number;
 
   constructor(private service: CityAssignmentService, private cdr: ChangeDetectorRef) {}
 
@@ -36,7 +39,7 @@ export class CityAssignmentsComponent implements OnInit {
   }
 
   get filteredRows(): CityAssignment[] {
-    const q = this.search.trim().toLowerCase();
+    const q = this.appliedSearch.trim().toLowerCase();
     if (!q) return this.rows;
     return this.rows.filter(row =>
       (row.userName || '').toLowerCase().includes(q)
@@ -82,6 +85,15 @@ export class CityAssignmentsComponent implements OnInit {
 
   resetPage(): void {
     this.currentPage = 1;
+  }
+
+  scheduleSearch(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.appliedSearch = this.search;
+      this.currentPage = 1;
+      this.refreshView();
+    }, 400);
   }
 
   loadOptions(): void {
@@ -161,7 +173,7 @@ export class CityAssignmentsComponent implements OnInit {
 
   exportRows(): void {
     this.exporting = true;
-    this.service.export({ page_length: 50000 }).pipe(finalize(() => {
+    this.service.export({ page_length: 50000, search: this.appliedSearch.trim() }).pipe(finalize(() => {
       this.exporting = false;
       this.refreshView();
     })).subscribe({
@@ -182,9 +194,7 @@ export class CityAssignmentsComponent implements OnInit {
   }
 
   formatDate(value?: string | null): string {
-    if (!value) return '';
-    const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? value : date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return formatKolkataDateTime(value, '');
   }
 
   private toSelect(options: CityAssignmentOption[]): SearchableSelectOption[] {

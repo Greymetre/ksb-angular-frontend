@@ -15,14 +15,14 @@
     <div class="filter-grid">
       <div class="filter-field" *ngIf="!isHoliday">
         <label>User</label>
-        <select [(ngModel)]="filter['executive_id']">
+        <select [(ngModel)]="filter['executive_id']" (ngModelChange)="loadRows()">
           <option value="">All Users</option>
           <option *ngFor="let user of options.users" [value]="user.id">{{ user.name | firstCaps }}</option>
         </select>
       </div>
       <div class="filter-field" *ngIf="isHoliday">
         <label>Holiday For</label>
-        <select [(ngModel)]="filter['holiday_for']" (change)="onHolidayFilterForChange()">
+        <select [(ngModel)]="filter['holiday_for']" (ngModelChange)="onHolidayFilterForChange(); loadRows()">
           <option value="">All</option>
           <option value="division">Zone</option>
           <option value="branch">Branch</option>
@@ -30,43 +30,43 @@
       </div>
       <div class="filter-field" *ngIf="isHoliday && filter['holiday_for'] === 'branch'">
         <label>Branch</label>
-        <select [(ngModel)]="filter['branch_id']">
+        <select [(ngModel)]="filter['branch_id']" (ngModelChange)="loadRows()">
           <option value="">All Branches</option>
           <option *ngFor="let branch of options.branches" [value]="branch.id">{{ branch.name | firstCaps }}</option>
         </select>
       </div>
       <div class="filter-field" *ngIf="isHoliday && filter['holiday_for'] === 'division'">
         <label>Zone</label>
-        <select [(ngModel)]="filter['division_id']">
+        <select [(ngModel)]="filter['division_id']" (ngModelChange)="loadRows()">
           <option value="">All Zones</option>
           <option *ngFor="let division of options.divisions" [value]="division.id">{{ division.name | firstCaps }}</option>
         </select>
       </div>
       <div class="filter-field" *ngIf="isTour">
-        <label>Division</label>
-        <select [(ngModel)]="filter['division_id']">
-          <option value="">All Divisions</option>
+        <label>Zone</label>
+        <select [(ngModel)]="filter['division_id']" (ngModelChange)="loadRows()">
+          <option value="">All Zones</option>
           <option *ngFor="let division of options.divisions" [value]="division.id">{{ division.name | firstCaps }}</option>
         </select>
       </div>
       <div class="filter-field" *ngIf="isTour || isAttendance || isSummary">
         <label>Designation</label>
-        <select [(ngModel)]="filter['designation_id']">
+        <select [(ngModel)]="filter['designation_id']" (ngModelChange)="loadRows()">
           <option value="">All Designations</option>
           <option *ngFor="let designation of options.designations" [value]="designation.id">{{ designation.name | firstCaps }}</option>
         </select>
       </div>
       <div class="filter-field" *ngIf="!isHoliday">
         <label>From Date</label>
-        <input type="date" [(ngModel)]="filter['start_date']" />
+        <input type="date" [(ngModel)]="filter['start_date']" (ngModelChange)="loadRows()" />
       </div>
       <div class="filter-field" *ngIf="!isHoliday">
         <label>To Date</label>
-        <input type="date" [(ngModel)]="filter['end_date']" />
+        <input type="date" [(ngModel)]="filter['end_date']" (ngModelChange)="loadRows()" />
       </div>
       <div class="filter-field" *ngIf="isLeave || isAttendance">
         <label>Status</label>
-        <select [(ngModel)]="filter['status']">
+        <select [(ngModel)]="filter['status']" (ngModelChange)="loadRows()">
           <option value="">All Status</option>
           <option value="0">Pending</option>
           <option value="1">Approved</option>
@@ -75,17 +75,16 @@
       </div>
       <div class="filter-field" *ngIf="isAttendance">
         <label>Working Type</label>
-        <select [(ngModel)]="filter['type']">
+        <select [(ngModel)]="filter['type']" (ngModelChange)="loadRows()">
           <option value="">All Types</option>
           <option *ngFor="let type of options.working_types" [value]="type">{{ type }}</option>
         </select>
       </div>
       <div class="filter-field">
         <label>Search</label>
-        <input type="text" [(ngModel)]="filter['search']" (keyup.enter)="loadRows()" />
+        <input type="text" [(ngModel)]="filter['search']" (ngModelChange)="scheduleFilterSearch()" />
       </div>
       <div class="filter-actions">
-        <button type="button" class="mini-btn" (click)="resetPage(); loadRows()">Filter</button>
         <button type="button" class="mini-btn light" (click)="resetFilters()">Clear</button>
       </div>
     </div>

@@ -18,42 +18,41 @@
   <div class="filter-panel" *ngIf="showFilters">
     <div class="filter-field">
       <label>User Type</label>
-      <select [(ngModel)]="selectedUserType">
+      <select [(ngModel)]="selectedUserType" (ngModelChange)="applyFilters()">
         <option value="employee">Employee</option>
         <option value="customer">Customer</option>
       </select>
     </div>
     <div class="filter-field">
       <label>Active</label>
-      <select [(ngModel)]="selectedActive">
+      <select [(ngModel)]="selectedActive" (ngModelChange)="applyFilters()">
         <option value="">All</option>
         <option value="Y">Active</option>
         <option value="N">Inactive</option>
       </select>
     </div>
     <div class="filter-field">
-      <label>Division</label>
-      <select [(ngModel)]="selectedDivisionId">
+      <label>Zone</label>
+      <select [(ngModel)]="selectedDivisionId" (ngModelChange)="applyFilters()">
         <option [ngValue]="null">All</option>
         <option *ngFor="let division of divisions" [ngValue]="division.id">{{ division.name | firstCaps }}</option>
       </select>
     </div>
     <div class="filter-field">
       <label>Branch</label>
-      <select [(ngModel)]="selectedBranchId">
+      <select [(ngModel)]="selectedBranchId" (ngModelChange)="applyFilters()">
         <option value="">All</option>
         <option *ngFor="let branch of branches" [value]="branch.id">{{ branch.name | firstCaps }}</option>
       </select>
     </div>
     <div class="filter-field">
       <label>Department</label>
-      <select [(ngModel)]="selectedDepartmentId">
+      <select [(ngModel)]="selectedDepartmentId" (ngModelChange)="applyFilters()">
         <option [ngValue]="null">All</option>
         <option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name | firstCaps }}</option>
       </select>
     </div>
     <div class="filter-actions">
-      <button type="button" class="mini-btn" (click)="applyFilters()">Filter</button>
       <button type="button" class="mini-btn light" (click)="clearFilters()">Clear</button>
     </div>
   </div>
@@ -80,7 +79,7 @@
       </div>
       <div class="search-group">
         <label>Search:</label>
-        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="resetPage()" class="table-search"/>
+        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="scheduleSearch()" class="table-search"/>
       </div>
     </div>
   </div>
@@ -98,7 +97,7 @@
             <th>Name</th>
             <th>Branches</th>
             <th>Designation</th>
-            <th>Division</th>
+            <th>Zone</th>
             <th>WhatsApp</th>
             <th>Mobile</th>
             <th>Email</th>
@@ -280,9 +279,9 @@
           </select>
         </div>
         <div class="modal-field">
-          <label>Division</label>
+          <label>Zone</label>
           <select [(ngModel)]="userForm.divisionId">
-            <option [ngValue]="null">Select division</option>
+            <option [ngValue]="null">Select Zone</option>
             <option *ngFor="let division of divisions" [ngValue]="division.id">{{ division.name | firstCaps }}</option>
           </select>
         </div>

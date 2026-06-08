@@ -4,6 +4,7 @@ import { Subscription, timeout } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { AddressConfig, AddressItem, AddressMasterService, AddressPayload } from '../../services/address-master.service';
+import { formatKolkataDateTime } from '../../shared/utils/date-time';
 
 interface AddressRouteConfig extends AddressConfig {
   title: string;
@@ -60,6 +61,7 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
   showEntries = 10;
   currentPage = 1;
   searchQuery = '';
+  appliedSearchQuery = '';
   loading = false;
   optionsLoading = false;
   saving = false;
@@ -74,6 +76,7 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
 
   private routeSub?: Subscription;
   private toastTimeoutId?: number;
+  private searchTimeoutId?: number;
 
   constructor(
     private route: ActivatedRoute,
@@ -88,6 +91,7 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
       this.items = [];
       this.parentOptions = [];
       this.searchQuery = '';
+      this.appliedSearchQuery = '';
       this.currentPage = 1;
       this.showModal = false;
       this.loadItems();
@@ -98,10 +102,11 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.routeSub?.unsubscribe();
     if (this.toastTimeoutId) window.clearTimeout(this.toastTimeoutId);
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
   }
 
   get filteredItems(): AddressItem[] {
-    const q = this.searchQuery.trim().toLowerCase();
+    const q = this.appliedSearchQuery.trim().toLowerCase();
     if (!q) return this.items;
 
     return this.items.filter(item =>
@@ -169,6 +174,15 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
 
   resetPage(): void {
     this.currentPage = 1;
+  }
+
+  scheduleSearch(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.appliedSearchQuery = this.searchQuery;
+      this.currentPage = 1;
+      this.refreshView();
+    }, 400);
   }
 
   loadOptions(): void {
@@ -358,18 +372,16 @@ export class AddressMasterComponent implements OnInit, OnDestroy {
   }
 
   formatDate(value?: string | null): string {
-    if (!value) return '';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
+    return formatKolkataDateTime(value, '');
   }
 
   private buildPayload(): AddressPayload {
-    if (this.config.nameField === 'countryName') return { country_name: this.form.countryName.trim() };
-    if (this.config.nameField === 'stateName') return { state_name: this.form.stateName.trim(), country_id: this.form.countryId, gst_code: this.form.gstCode.trim() };
-    if (this.config.nameField === 'districtName') return { district_name: this.form.districtName.trim(), state_id: this.form.stateId };
-    if (this.config.nameField === 'cityName') return { city_name: this.form.cityName.trim(), district_id: this.form.districtId };
-    return { pincode: this.form.pincode.trim(), city_id: this.form.cityId };
+    const active = this.form.active;
+    if (this.config.nameField === 'countryName') return { active, country_name: this.form.countryName.trim() };
+    if (this.config.nameField === 'stateName') return { active, state_name: this.form.stateName.trim(), country_id: this.form.countryId, gst_code: this.form.gstCode.trim() };
+    if (this.config.nameField === 'districtName') return { active, district_name: this.form.districtName.trim(), state_id: this.form.stateId };
+    if (this.config.nameField === 'cityName') return { active, city_name: this.form.cityName.trim(), district_id: this.form.districtId };
+    return { active, pincode: this.form.pincode.trim(), city_id: this.form.cityId };
   }
 
   private displayFormName(): string {

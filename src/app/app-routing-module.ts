@@ -259,8 +259,8 @@ const routes: Routes = [
         canActivate: [authGuard],
         data: {
           masterConfig: {
-            title: 'DivisionList',
-            singular: 'Division',
+            title: 'Zone List',
+            singular: 'Zone',
             icon: 'safety_divider',
             permission: 'division',
             exportPermission: 'division_report_download',
@@ -268,8 +268,8 @@ const routes: Routes = [
             listKey: 'divisions',
             itemKey: 'division',
             nameField: 'divisionName',
-            nameLabel: 'Division Name',
-            fileName: 'divisions.xlsx'
+            nameLabel: 'Zone Name',
+            fileName: 'zones.xlsx'
           }
         }
       },

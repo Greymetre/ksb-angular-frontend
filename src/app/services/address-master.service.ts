@@ -25,6 +25,7 @@ export interface AddressItem {
 }
 
 export interface AddressPayload {
+  active?: string;
   country_name?: string;
   state_name?: string;
   district_name?: string;

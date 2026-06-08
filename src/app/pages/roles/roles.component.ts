@@ -3,6 +3,7 @@ import { timeout } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { Permission, Role, RolePayload, RoleService } from '../../services/role.service';
+import { formatKolkataDateTime } from '../../shared/utils/date-time';
 
 interface RoleFormModel {
   id: number | null;
@@ -29,6 +30,7 @@ export class RolesComponent implements OnInit {
   showEntries = 10;
   currentPage = 1;
   searchQuery = '';
+  appliedSearchQuery = '';
   permissionSearch = '';
   showRoleModal = false;
   permissionDropdownOpen = false;
@@ -40,6 +42,7 @@ export class RolesComponent implements OnInit {
   toast: ToastModel = { visible: false, message: '', type: 'success' };
   roleForm: RoleFormModel = this.emptyForm();
   private toastTimeoutId?: number;
+  private searchTimeoutId?: number;
 
   constructor(
     private roleService: RoleService,
@@ -52,7 +55,7 @@ export class RolesComponent implements OnInit {
   }
 
   get filteredRoles(): Role[] {
-    const q = this.searchQuery.trim().toLowerCase();
+    const q = this.appliedSearchQuery.trim().toLowerCase();
     if (!q) return this.roles;
 
     return this.roles.filter(role =>
@@ -154,6 +157,15 @@ export class RolesComponent implements OnInit {
 
   resetPage(): void {
     this.currentPage = 1;
+  }
+
+  scheduleSearch(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.appliedSearchQuery = this.searchQuery;
+      this.currentPage = 1;
+      this.refreshView();
+    }, 400);
   }
 
   loadPermissions(): void {
@@ -307,18 +319,7 @@ export class RolesComponent implements OnInit {
   }
 
   formatDate(value?: string | null): string {
-    if (!value) return '';
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-
-    return date.toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return formatKolkataDateTime(value, '');
   }
 
   readableName(value: string): string {

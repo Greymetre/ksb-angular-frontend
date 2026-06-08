@@ -169,10 +169,10 @@
     </div>
 
     <div class="summary-grid">
-      <div class="summary-tile">
+      <button type="button" class="summary-tile summary-action" [class.active]="filter.approval_status === null || filter.approval_status === undefined" (click)="filterByApprovalStatus(null)">
         <span>Total Invoices</span>
         <strong>{{ summary.totalInvoices }}</strong>
-      </div>
+      </button>
       <div class="summary-tile">
         <span>Total Retailers</span>
         <strong>{{ summary.totalRetailers }}</strong>
@@ -185,14 +185,29 @@
         <span>Total Points</span>
         <strong>{{ summary.totalPoints | number:'1.2-2' }}</strong>
       </div>
-      <div class="summary-tile">
-        <span>Pending</span>
-        <strong>{{ summary.pending }}</strong>
-      </div>
-      <div class="summary-tile">
+    </div>
+
+    <div class="summary-grid approval-summary-grid">
+      <button type="button" class="summary-tile summary-action" [class.active]="filter.approval_status === 0" (click)="filterByApprovalStatus(0)">
+        <span>Pending From SS</span>
+        <strong>{{ pendingFromSs }}</strong>
+      </button>
+      <button type="button" class="summary-tile summary-action" [class.active]="filter.approval_status === 1" (click)="filterByApprovalStatus(1)">
+        <span>Pending From Sales</span>
+        <strong>{{ pendingFromSales }}</strong>
+      </button>
+      <button type="button" class="summary-tile summary-action" [class.active]="filter.approval_status === 2" (click)="filterByApprovalStatus(2)">
+        <span>Pending From HO</span>
+        <strong>{{ pendingFromHo }}</strong>
+      </button>
+      <button type="button" class="summary-tile summary-action" [class.active]="filter.approval_status === 4" (click)="filterByApprovalStatus(4)">
+        <span>Rejected</span>
+        <strong>{{ summary.rejected }}</strong>
+      </button>
+      <button type="button" class="summary-tile summary-action" [class.active]="filter.approval_status === 3" (click)="filterByApprovalStatus(3)">
         <span>Approved HO</span>
         <strong>{{ summary.approvedHo }}</strong>
-      </div>
+      </button>
     </div>
 
     <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
@@ -201,12 +216,12 @@
       <div class="filter-grid">
         <div class="filter-field">
           <label>Retailer</label>
-          <input type="text" [(ngModel)]="filter.retailer_search" (keyup.enter)="loadInvoices()"
+          <input type="text" [(ngModel)]="filter.retailer_search" (ngModelChange)="scheduleFilterSearch()"
             placeholder="Name, shop, or mobile" />
         </div>
         <div class="filter-field">
           <label>Invoice Number</label>
-          <input type="text" [(ngModel)]="filter.invoice_number" (keyup.enter)="loadInvoices()"
+          <input type="text" [(ngModel)]="filter.invoice_number" (ngModelChange)="scheduleFilterSearch()"
             placeholder="Invoice no." />
         </div>
         <div class="filter-field">
@@ -216,14 +231,13 @@
         </div>
         <div class="filter-field">
           <label>From Date</label>
-          <input type="date" [(ngModel)]="filter.from_date" />
+          <input type="date" [(ngModel)]="filter.from_date" (ngModelChange)="resetPage(); loadInvoices()" />
         </div>
         <div class="filter-field">
           <label>To Date</label>
-          <input type="date" [(ngModel)]="filter.to_date" />
+          <input type="date" [(ngModel)]="filter.to_date" (ngModelChange)="resetPage(); loadInvoices()" />
         </div>
         <div class="filter-actions">
-          <button type="button" class="mini-btn" (click)="resetPage(); loadInvoices()">Filter</button>
           <button type="button" class="mini-btn light" (click)="resetFilters()">Clear</button>
         </div>
       </div>

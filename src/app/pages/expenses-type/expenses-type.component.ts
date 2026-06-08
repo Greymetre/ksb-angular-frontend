@@ -24,12 +24,14 @@ export class ExpensesTypeComponent implements OnInit {
   showEntries = 10;
   currentPage = 1;
   searchQuery = '';
+  appliedSearchQuery = '';
   loading = false;
   saving = false;
   showModal = false;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
   private toastTimeoutId?: number;
+  private searchTimeoutId?: number;
 
   form: ExpenseTypePayload & { id: number | null } = this.emptyForm();
 
@@ -45,7 +47,7 @@ export class ExpensesTypeComponent implements OnInit {
   }
 
   get filteredRows(): ExpenseType[] {
-    const query = this.searchQuery.trim().toLowerCase();
+    const query = this.appliedSearchQuery.trim().toLowerCase();
     if (!query) return this.rows;
     return this.rows.filter(row =>
       row.allowanceTypeName.toLowerCase().includes(query)
@@ -106,6 +108,15 @@ export class ExpensesTypeComponent implements OnInit {
 
   resetPage(): void {
     this.currentPage = 1;
+  }
+
+  scheduleSearch(): void {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.appliedSearchQuery = this.searchQuery;
+      this.currentPage = 1;
+      this.refreshView();
+    }, 400);
   }
 
   openCreateModal(): void {

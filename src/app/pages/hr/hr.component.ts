@@ -4,6 +4,7 @@ import { finalize, timeout } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { AttendancePlan, HrOption, HrOptions, HrRecord, HrService } from '../../services/hr.service';
 import { SearchableSelectOption } from '../../shared/components/searchable-select/searchable-select.component';
+import { formatKolkataDate, formatKolkataLongDateTime, kolkataTodayInput } from '../../shared/utils/date-time';
 
 type HrMode = 'holidays' | 'leaves' | 'tours' | 'attendance-details' | 'attendance-summary';
 
@@ -46,6 +47,7 @@ export class HrComponent implements OnInit {
   toast = { visible: false, message: '', type: 'success' as 'success' | 'error' };
   importFile: File | null = null;
   private toastTimeoutId?: number;
+  private filterSearchTimeoutId?: number;
 
   constructor(
     private route: ActivatedRoute,
@@ -128,9 +130,19 @@ export class HrComponent implements OnInit {
   }
 
   resetFilters(): void {
+    if (this.filterSearchTimeoutId) window.clearTimeout(this.filterSearchTimeoutId);
     this.filter = {};
     this.currentPage = 1;
     this.loadRows();
+  }
+
+  scheduleFilterSearch(): void {
+    if (this.filterSearchTimeoutId) window.clearTimeout(this.filterSearchTimeoutId);
+    this.filterSearchTimeoutId = window.setTimeout(() => {
+      this.currentPage = 1;
+      this.loadRows();
+      this.refreshView();
+    }, 400);
   }
 
   resetPage(): void {
@@ -344,17 +356,11 @@ export class HrComponent implements OnInit {
   }
 
   formatDate(value: unknown): string {
-    if (!value) return '-';
-    const date = new Date(String(value));
-    if (Number.isNaN(date.getTime())) return String(value);
-    return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    return formatKolkataDate(value ? String(value) : null, '-');
   }
 
   formatDateTime(value: unknown): string {
-    if (!value) return '-';
-    const date = new Date(String(value));
-    if (Number.isNaN(date.getTime())) return String(value);
-    return date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return formatKolkataLongDateTime(value ? String(value) : null, '-');
   }
 
   dayKeys(row: HrRecord): string[] {
@@ -512,7 +518,7 @@ export class HrComponent implements OnInit {
   }
 
   private defaultForm(): HrRecord {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = kolkataTodayInput();
     if (this.isHoliday) return { active: 'Y', holiday_for: 'division', branch: '', division_id: '', namesText: '', holidayDatesText: today };
     if (this.isLeave) return { user_id: '', from_date: today, to_date: today, type: 'Full Day Leave', bal_type: 'Casual Leave', reason: '' };
     if (this.isTour) return { user_id: '', date: today, district: '', town: '', objectives: '' };

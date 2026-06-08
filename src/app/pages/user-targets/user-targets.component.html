@@ -18,28 +18,28 @@
   <div class="filter-panel" *ngIf="showFilters">
     <div class="filter-field">
       <label>Branch</label>
-      <select [(ngModel)]="selectedBranchId">
+      <select [(ngModel)]="selectedBranchId" (ngModelChange)="applyFilters()">
         <option [ngValue]="null">All</option>
         <option *ngFor="let branch of branches" [ngValue]="branch.id">{{ branch.name | firstCaps }}</option>
       </select>
     </div>
     <div class="filter-field">
       <label>User Name</label>
-      <select [(ngModel)]="selectedUserId">
+      <select [(ngModel)]="selectedUserId" (ngModelChange)="applyFilters()">
         <option [ngValue]="null">All</option>
         <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name | firstCaps }}</option>
       </select>
     </div>
     <div class="filter-field">
-      <label>Division</label>
-      <select [(ngModel)]="selectedDivisionId">
+      <label>Zone</label>
+      <select [(ngModel)]="selectedDivisionId" (ngModelChange)="applyFilters()">
         <option [ngValue]="null">All</option>
         <option *ngFor="let division of divisions" [ngValue]="division.id">{{ division.name | firstCaps }}</option>
       </select>
     </div>
     <div class="filter-field">
       <label>Type</label>
-      <select [(ngModel)]="selectedType">
+      <select [(ngModel)]="selectedType" (ngModelChange)="applyFilters()">
         <option value="">All</option>
         <option value="primary">Primary</option>
         <option value="secondary">Secondary</option>
@@ -47,20 +47,19 @@
     </div>
     <div class="filter-field">
       <label>Month</label>
-      <select [(ngModel)]="selectedMonth">
+      <select [(ngModel)]="selectedMonth" (ngModelChange)="applyFilters()">
         <option value="">All</option>
         <option *ngFor="let month of months" [value]="month">{{ month }}</option>
       </select>
     </div>
     <div class="filter-field">
       <label>Financial Year</label>
-      <select [(ngModel)]="selectedFinancialYear">
+      <select [(ngModel)]="selectedFinancialYear" (ngModelChange)="applyFilters()">
         <option value="">All</option>
         <option *ngFor="let year of financialYears" [value]="year">{{ year }}</option>
       </select>
     </div>
     <div class="filter-actions">
-      <button type="button" class="mini-btn" (click)="applyFilters()">Filter</button>
       <button type="button" class="mini-btn light" (click)="clearFilters()">Clear</button>
     </div>
   </div>
@@ -87,7 +86,7 @@
       </div>
       <div class="search-group">
         <label>Search:</label>
-        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="resetPage()" class="table-search"/>
+        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="scheduleSearch()" class="table-search"/>
       </div>
     </div>
   </div>

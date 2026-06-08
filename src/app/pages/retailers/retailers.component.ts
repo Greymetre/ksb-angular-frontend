@@ -23,6 +23,8 @@ export interface Retailer {
 export class RetailersComponent {
   showFilter = false;
   searchQuery = '';
+  appliedSearchQuery = '';
+  private searchTimeoutId?: number;
 
   filterForm = {
     ownerName: 'All Owners',
@@ -52,8 +54,8 @@ export class RetailersComponent {
   ];
 
   get filteredRetailers() {
-    if (!this.searchQuery) return this.retailers;
-    const q = this.searchQuery.toLowerCase();
+    if (!this.appliedSearchQuery) return this.retailers;
+    const q = this.appliedSearchQuery.toLowerCase();
     return this.retailers.filter(r =>
       r.ownerName.toLowerCase().includes(q) ||
       r.shopName.toLowerCase().includes(q) ||
@@ -63,6 +65,12 @@ export class RetailersComponent {
   }
 
   toggleFilter() { this.showFilter = !this.showFilter; }
+  scheduleSearch() {
+    if (this.searchTimeoutId) window.clearTimeout(this.searchTimeoutId);
+    this.searchTimeoutId = window.setTimeout(() => {
+      this.appliedSearchQuery = this.searchQuery;
+    }, 400);
+  }
   toggleActive(r: Retailer) { r.active = !r.active; }
 
   constructor(private router: Router) {}
