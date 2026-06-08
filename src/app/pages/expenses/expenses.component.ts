@@ -5,6 +5,7 @@ import { UserOption } from '../../services/user.service';
 import { Expense, ExpenseOptions, ExpensePayload, ExpenseService } from '../../services/expense.service';
 import { ExpenseType } from '../../services/expense-type.service';
 import { API_ORIGIN } from '../../config/api.config';
+import { hasOnlyPdfOrImageFiles } from '../../shared/utils/file-validation';
 
 interface ToastModel {
   visible: boolean;
@@ -350,7 +351,14 @@ export class ExpensesComponent implements OnInit {
 
   onFilesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.selectedFiles = Array.from(input.files ?? []);
+    const files = Array.from(input.files ?? []);
+    if (!hasOnlyPdfOrImageFiles(files)) {
+      this.selectedFiles = [];
+      input.value = '';
+      this.showToast('Only PDF and image files are allowed.', 'error');
+      return;
+    }
+    this.selectedFiles = files;
   }
 
   openDetails(row: Expense): void {

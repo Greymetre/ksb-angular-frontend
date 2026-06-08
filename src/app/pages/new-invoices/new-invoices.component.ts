@@ -4,6 +4,7 @@ import { finalize, timeout } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { NewInvoiceFilter, NewInvoiceItem, NewInvoicePayload, NewInvoiceService, NewInvoiceSummary, RetailerOption } from '../../services/new-invoice.service';
 import { API_ORIGIN } from '../../config/api.config';
+import { isPdfOrImageFile } from '../../shared/utils/file-validation';
 
 interface SelectOption {
   id: number | string;
@@ -414,7 +415,15 @@ export class NewInvoicesComponent implements OnInit {
 
   onAttachmentChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.selectedAttachmentFile = input.files?.[0] ?? null;
+    const file = input.files?.[0] ?? null;
+    if (file && !isPdfOrImageFile(file)) {
+      this.selectedAttachmentFile = null;
+      input.value = '';
+      this.showToast('Only PDF and image files are allowed.', 'error');
+      this.refreshView();
+      return;
+    }
+    this.selectedAttachmentFile = file;
     this.refreshView();
   }
 

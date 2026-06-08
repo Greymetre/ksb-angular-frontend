@@ -142,7 +142,7 @@
         </div>
         <div class="modal-field" *ngIf="mode === 'product'">
           <label>Attachment</label>
-          <input #attachmentInput type="file" (change)="onFile($event)"/>
+          <input #attachmentInput type="file" accept="image/*,.pdf,application/pdf" (change)="onFile($event)"/>
           <small>{{ selectedFile?.name || form.attachment || '' }}</small>
         </div>
         <div class="modal-field">

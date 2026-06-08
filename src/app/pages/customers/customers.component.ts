@@ -4,6 +4,7 @@ import { finalize, timeout } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { AddressOption, CustomerFilter, CustomerItem, CustomerService, LocationDetails } from '../../services/customer.service';
 import { UserService } from '../../services/user.service';
+import { hasOnlyPdfOrImageFiles } from '../../shared/utils/file-validation';
 
 interface CustomerTypeOption {
   id: number;
@@ -44,7 +45,7 @@ interface CustomerFormModel {
 })
 export class CustomersComponent implements OnInit {
   @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>;
-  private readonly retailerImageFileKeys = new Set(['gst_attachment', 'pan_attachment', 'aadhar_attachment', 'bank_proof', 'shop_photo']);
+  private readonly documentFileKeys = new Set(['documents', 'mou_file', 'gst_attachment', 'pan_attachment', 'aadhar_attachment', 'bank_proof']);
 
   readonly customerTypes: CustomerTypeOption[] = [
     { id: 1, label: 'Distributor' },
@@ -538,10 +539,16 @@ export class CustomersComponent implements OnInit {
   onFileChange(key: string, event: Event, multiple = false): void {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);
-    if (this.isRetailer && this.retailerImageFileKeys.has(key) && files.some(file => !this.isImageFile(file))) {
+    if (this.documentFileKeys.has(key) && !hasOnlyPdfOrImageFiles(files)) {
       this.form.files[key] = multiple ? [] : null;
       input.value = '';
-      this.showToast('Retailer KYC attachments must be image files only.', 'error');
+      this.showToast('Only PDF and image files are allowed.', 'error');
+      return;
+    }
+    if (!this.documentFileKeys.has(key) && files.some(file => !this.isImageFile(file))) {
+      this.form.files[key] = multiple ? [] : null;
+      input.value = '';
+      this.showToast('Only image files are allowed.', 'error');
       return;
     }
     this.form.files[key] = multiple ? files : files[0] || null;

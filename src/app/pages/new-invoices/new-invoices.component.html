@@ -404,7 +404,7 @@
         </div>
         <div class="modal-field">
           <label>Attachment</label>
-          <input type="file" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" (change)="onAttachmentChange($event)" />
+          <input type="file" accept="image/*,.pdf,application/pdf" (change)="onAttachmentChange($event)" />
           <small>{{ attachmentLabel() }}</small>
         </div>
       </div>

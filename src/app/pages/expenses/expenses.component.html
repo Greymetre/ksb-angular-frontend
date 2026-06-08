@@ -225,7 +225,7 @@
         </div>
         <div class="modal-field full-field">
           <label>Attachment</label>
-          <input type="file" multiple (change)="onFilesSelected($event)"/>
+          <input type="file" accept="image/*,.pdf,application/pdf" multiple (change)="onFilesSelected($event)"/>
           <div class="file-selection" *ngIf="selectedFiles.length">{{ selectedFiles.length }} file{{ selectedFiles.length > 1 ? 's' : '' }} selected</div>
         </div>
       </div>

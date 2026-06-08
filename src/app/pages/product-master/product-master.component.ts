@@ -5,6 +5,7 @@ import { finalize } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { ProductFamily, ProductItem, ProductSegment, ProductService } from '../../services/product.service';
 import { API_ORIGIN } from '../../config/api.config';
+import { isPdfOrImageFile } from '../../shared/utils/file-validation';
 
 type Mode = 'segment' | 'family' | 'product';
 
@@ -262,7 +263,15 @@ export class ProductMasterComponent implements OnInit {
 
   onFile(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.selectedFile = input.files?.[0] ?? null;
+    const file = input.files?.[0] ?? null;
+    if (file && !isPdfOrImageFile(file)) {
+      this.selectedFile = null;
+      input.value = '';
+      this.showToast('Only PDF and image files are allowed.', 'error');
+      this.refreshView();
+      return;
+    }
+    this.selectedFile = file;
     this.refreshView();
   }
 
