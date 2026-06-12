@@ -35,7 +35,7 @@
         </button>
       </div>
       <div formArrayName="mobileNumbers">
-        <div *ngFor="let ctrl of mobileNumbers.controls; let i = index" class="mobile-row">
+        <div *ngFor="let ctrl of mobileNumbers.controls; let i = index; trackBy: trackByIndex" class="mobile-row">
           <input [formControlName]="i" type="tel" [placeholder]="'Mobile Number ' + (i+1)" class="mobile-input"/>
           <button type="button" class="btn-remove-mobile" (click)="removeMobile(i)">
             <span class="material-icons">remove</span>

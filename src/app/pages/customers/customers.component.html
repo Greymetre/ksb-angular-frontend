@@ -295,7 +295,7 @@
               </button>
             </div>
             <div class="mobile-list">
-              <div class="mobile-input-row" *ngFor="let mobile of form.mobileNumbers; let index = index">
+              <div class="mobile-input-row" *ngFor="let mobile of form.mobileNumbers; let index = index; trackBy: trackByIndex">
                 <input type="text" [ngModel]="mobile" (ngModelChange)="updateMobileNumber(index, $event)" maxlength="10" placeholder="Mobile Number {{ index + 1 }}"/>
                 <button type="button" class="btn-mini danger" (click)="removeMobileNumber(index)" [disabled]="form.mobileNumbers.length === 1">
                   <span class="material-icons">remove</span>

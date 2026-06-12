@@ -240,6 +240,7 @@
   justify-content: space-between;
   padding: 20px 20px 16px 72px;
   border-bottom: 1px solid #eee;
+  gap: 16px;
 
   h3 {
     font-size: 17px;
@@ -247,6 +248,44 @@
     color: var(--text-dark);
     margin: 0;
   }
+}
+
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-save-top,
+.btn-cancel-top {
+  border: none;
+  border-radius: 4px;
+  height: 32px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+}
+
+.btn-save-top {
+  background: var(--sidebar-bg);
+  color: white;
+
+  &:hover:not(:disabled) { background: var(--sidebar-hover); }
+}
+
+.btn-cancel-top {
+  background: #eef1f5;
+  color: var(--text-dark);
+
+  &:hover:not(:disabled) { background: #e1e5ea; }
 }
 
 .modal-close-btn {

@@ -5,6 +5,7 @@ import { AuthService } from '../../../services/auth.service';
 import { CustomerItem, CustomerService } from '../../../services/customer.service';
 import { NewInvoiceItem, NewInvoiceService } from '../../../services/new-invoice.service';
 import { RedemptionItem, RedemptionService } from '../../../services/redemption.service';
+import { UserService } from '../../../services/user.service';
 import { API_ORIGIN } from '../../../config/api.config';
 import { formatKolkataDate, formatKolkataDateTime } from '../../../shared/utils/date-time';
 
@@ -64,6 +65,7 @@ export class CustomerShowComponent implements OnInit {
   kycDialog: KycDialogModel = this.emptyKycDialog();
   savingKyc = false;
   toast = { visible: false, message: '', type: 'success' as 'success' | 'error' };
+  private lookupLabels: Record<string, string> = {};
   private readonly backendOrigin = this.resolveBackendOrigin();
   private toastTimeoutId?: number;
   private readonly curatedCustomKeys = new Set([
@@ -102,6 +104,7 @@ export class CustomerShowComponent implements OnInit {
     private customerService: CustomerService,
     private newInvoiceService: NewInvoiceService,
     private redemptionService: RedemptionService,
+    private userService: UserService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -113,6 +116,7 @@ export class CustomerShowComponent implements OnInit {
       return;
     }
     this.loadCustomer(id);
+    this.loadLookupOptions();
   }
 
   get displayName(): string {
@@ -451,7 +455,67 @@ export class CustomerShowComponent implements OnInit {
 
   private lookupName(key: string): string {
     const nameKey = `${key}_name`;
-    return this.field(nameKey) || this.field(key);
+    const name = this.field(nameKey);
+    if (name) return name;
+
+    const value = this.field(key);
+    if (!value) return '';
+
+    const labels = this.readIds(value)
+      .map(id => this.lookupLabels[`${key}:${id}`])
+      .filter(Boolean);
+
+    return labels.length > 0 ? labels.join(', ') : value;
+  }
+
+  private loadLookupOptions(): void {
+    this.customerService.list({ customer_type: 1, active: 'Y' }).subscribe({
+      next: distributors => {
+        distributors.forEach(distributor => {
+          const label = this.distributorLabel(distributor);
+          this.lookupLabels[`distributor_name:${distributor.id}`] = label;
+          this.lookupLabels[`agri_distributor:${distributor.id}`] = label;
+        });
+        this.refreshView();
+      },
+      error: () => undefined
+    });
+
+    this.userService.getOptions().subscribe({
+      next: options => {
+        options.reportings.forEach(user => {
+          this.lookupLabels[`employee_id:${user.id}`] = user.name;
+          this.lookupLabels[`sales_executive_id:${user.id}`] = user.name;
+          this.lookupLabels[`supervisor_id:${user.id}`] = user.name;
+        });
+        this.refreshView();
+      },
+      error: () => undefined
+    });
+  }
+
+  private distributorLabel(customer: CustomerItem): string {
+    const code = customer.customerCode || customer.customFields['distributor_code'];
+    const legalName = customer.customFields['legal_name'] || customer.customFields['shop_name'] || customer.name;
+    return [code, legalName].filter(Boolean).join(' - ') || customer.name;
+  }
+
+  private readIds(value: string): number[] {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    if (trimmed.startsWith('[')) {
+      try {
+        const values = JSON.parse(trimmed);
+        return Array.isArray(values) ? values.map(item => Number(item)).filter(id => Number.isFinite(id) && id > 0) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    return trimmed
+      .split(',')
+      .map(item => Number(item.trim()))
+      .filter(id => Number.isFinite(id) && id > 0);
   }
 
   private presentRows(rows: InfoRow[]): InfoRow[] {

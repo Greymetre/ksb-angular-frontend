@@ -51,6 +51,10 @@ export class RetailerCreateComponent {
     if (this.mobileNumbers.length > 1) this.mobileNumbers.removeAt(i);
   }
 
+  trackByIndex(index: number): number {
+    return index;
+  }
+
   submit() {
     if (this.form.valid) {
       console.log(this.form.value);

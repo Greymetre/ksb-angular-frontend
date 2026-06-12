@@ -16,7 +16,6 @@ interface MasterRouteConfig extends MasterConfig {
   nameLabel: string;
   fileName: string;
   hasBranchCode?: boolean;
-  hasWarehouse?: boolean;
 }
 
 interface MasterFormModel {
@@ -24,7 +23,6 @@ interface MasterFormModel {
   active: string;
   branchName: string;
   branchCode: string;
-  warehouseId: string;
   divisionName: string;
   designationName: string;
   name: string;
@@ -172,7 +170,6 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
       active: item.active || 'Y',
       branchName: item.branchName || '',
       branchCode: item.branchCode || '',
-      warehouseId: item.warehouseId || '',
       divisionName: item.divisionName || '',
       designationName: item.designationName || '',
       name: item.name || ''
@@ -197,11 +194,6 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
 
     if (this.config.hasBranchCode && !this.form.branchCode.trim()) {
       this.showToast('Branch code is required.', 'error');
-      return;
-    }
-
-    if (this.config.hasWarehouse && !this.form.warehouseId.trim()) {
-      this.showToast('Warehouse is required.', 'error');
       return;
     }
 
@@ -286,8 +278,7 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
       return {
         active: this.form.active,
         branch_name: this.form.branchName.trim(),
-        branch_code: this.form.branchCode.trim(),
-        warehouse_id: this.form.warehouseId.trim()
+        branch_code: this.form.branchCode.trim()
       };
     }
 
@@ -343,7 +334,6 @@ export class MasterCrudComponent implements OnInit, OnDestroy {
       active: 'Y',
       branchName: '',
       branchCode: '',
-      warehouseId: '',
       divisionName: '',
       designationName: '',
       name: ''

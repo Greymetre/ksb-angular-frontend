@@ -248,8 +248,7 @@ const routes: Routes = [
             nameField: 'branchName',
             nameLabel: 'Branch Name',
             fileName: 'branch.xlsx',
-            hasBranchCode: true,
-            hasWarehouse: true
+            hasBranchCode: true
           }
         }
       },

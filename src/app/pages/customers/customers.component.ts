@@ -549,6 +549,10 @@ export class CustomersComponent implements OnInit {
     if (index === 0) this.form.mobile = value;
   }
 
+  trackByIndex(index: number): number {
+    return index;
+  }
+
   onFileChange(key: string, event: Event, multiple = false): void {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);

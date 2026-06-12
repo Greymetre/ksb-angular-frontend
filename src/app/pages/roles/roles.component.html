@@ -84,9 +84,14 @@
     </div>
     <div class="modal-header-row">
       <h3>{{ roleForm.id ? 'Edit Role' : 'Add Role' }}</h3>
-      <button class="modal-close-btn" (click)="closeRoleModal()" [disabled]="saving">
-        <span class="material-icons">close</span>
-      </button>
+      <div class="modal-header-actions">
+        <button type="button" class="btn-save-top" (click)="submitRole()" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Save' }}
+        </button>
+        <button type="button" class="btn-cancel-top" (click)="closeRoleModal()" [disabled]="saving">
+          Cancel
+        </button>
+      </div>
     </div>
 
     <div class="modal-body">
@@ -150,11 +155,6 @@
         </div>
       </div>
 
-      <div class="modal-actions">
-        <button class="btn-submit-modal" (click)="submitRole()" [disabled]="saving">
-          {{ saving ? 'Saving...' : 'SUBMIT' }}
-        </button>
-      </div>
     </div>
   </div>
 </div>

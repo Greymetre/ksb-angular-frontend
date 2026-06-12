@@ -42,7 +42,6 @@
           <th>Active</th>
           <th>{{ config.nameLabel }}</th>
           <th *ngIf="config.hasBranchCode">Branch Code</th>
-          <th *ngIf="config.hasWarehouse">Warehouse Id</th>
           <th>Created By</th>
           <th>Created At</th>
         </tr>
@@ -68,12 +67,11 @@
           </td>
           <td class="name-cell">{{ displayName(item) | firstCaps }}</td>
           <td *ngIf="config.hasBranchCode">{{ item.branchCode }}</td>
-          <td *ngIf="config.hasWarehouse">{{ item.warehouseId }}</td>
           <td>{{ item.createdByName || item.createdBy }}</td>
           <td>{{ formatDate(item.createdAt) }}</td>
         </tr>
         <tr *ngIf="!loading && pagedItems.length === 0">
-          <td [attr.colspan]="config.hasBranchCode ? 8 : 6" class="empty-row">No {{ config.singular.toLowerCase() }} found</td>
+          <td [attr.colspan]="config.hasBranchCode ? 7 : 6" class="empty-row">No {{ config.singular.toLowerCase() }} found</td>
         </tr>
       </tbody>
     </table>
@@ -116,10 +114,6 @@
         <div class="modal-field" *ngIf="config.hasBranchCode">
           <label>Branch Code <span class="req">*</span></label>
           <input type="text" [(ngModel)]="form.branchCode" maxlength="200"/>
-        </div>
-        <div class="modal-field" *ngIf="config.hasWarehouse">
-          <label>Warehouse Id</label>
-          <input type="text" [(ngModel)]="form.warehouseId" maxlength="125"/>
         </div>
         <div class="modal-field">
           <label>Active</label>
