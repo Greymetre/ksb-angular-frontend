@@ -189,7 +189,7 @@ export class SidebarComponent {
       icon: 'star',
       permission: 'order_access',
       children: [
-        { label: 'Orders', icon: 'shopping_bag', permission: 'order_access' },
+        { label: 'Orders', icon: 'shopping_bag', route: '/orders', permission: 'order_access' },
         // { label: 'Order Schemes', icon: 'flaky', permission: 'orderscheme' },
         { label: 'Order Dispatch', icon: 'shopping_cart', permission: 'sale_access' }
       ]

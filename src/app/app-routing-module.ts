@@ -24,6 +24,7 @@ import { CityAssignmentsComponent } from './pages/city-assignments/city-assignme
 import { UserTargetsComponent } from './pages/user-targets/user-targets.component';
 import { ExpensesTypeComponent } from './pages/expenses-type/expenses-type.component';
 import { ExpensesComponent } from './pages/expenses/expenses.component';
+import { OrdersComponent } from './pages/orders/orders.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -53,6 +54,7 @@ const routes: Routes = [
       { path: 'new-invoices/:id', component: NewInvoicesComponent, canActivate: [authGuard], data: { permission: 'new_invoice_access' } },
       { path: 'loyalty-schemes', component: LoyaltySchemesComponent, canActivate: [authGuard], data: { permission: 'scheme_access_list' } },
       { path: 'redemptions', component: RedemptionsComponent, canActivate: [authGuard], data: { permission: 'redemption_access' } },
+      { path: 'orders', component: OrdersComponent, canActivate: [authGuard], data: { permission: 'order_access' } },
       {
         path: 'holidays',
         component: HrComponent,

@@ -40,6 +40,7 @@ import { CityAssignmentsComponent } from './pages/city-assignments/city-assignme
 import { UserTargetsComponent } from './pages/user-targets/user-targets.component';
 import { ExpensesTypeComponent } from './pages/expenses-type/expenses-type.component';
 import { ExpensesComponent } from './pages/expenses/expenses.component';
+import { OrdersComponent } from './pages/orders/orders.component';
 
 @NgModule({
   declarations: [
@@ -72,6 +73,7 @@ import { ExpensesComponent } from './pages/expenses/expenses.component';
     UserTargetsComponent,
     ExpensesTypeComponent,
     ExpensesComponent,
+    OrdersComponent,
   ],
   imports: [BrowserModule, CommonModule, FormsModule, ReactiveFormsModule, AppRoutingModule],
   providers: [provideHttpClient()],
