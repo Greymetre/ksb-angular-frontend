@@ -93,6 +93,7 @@
         <thead>
           <tr>
             <th>#</th>
+            <th>Action</th>
             <th>Employee</th>
             <th>Branch</th>
             <th>Order Date</th>
@@ -109,6 +110,19 @@
         <tbody>
           <tr *ngFor="let row of pagedOrders; let index = index">
             <td>{{ pageStart + index + 1 }}</td>
+            <td class="action-cell">
+              <div class="row-actions">
+                <button type="button" class="mini-icon info" title="Edit Order" (click)="editOrder(row)" *ngIf="canEdit">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button type="button" class="mini-icon theme" title="Show Order" (click)="openDetail(row)" *ngIf="canShow">
+                  <span class="material-icons">visibility</span>
+                </button>
+                <button type="button" class="mini-icon warn" title="Delete Order" (click)="deleteOrder(row)" *ngIf="canDelete">
+                  <span class="material-icons">clear</span>
+                </button>
+              </div>
+            </td>
             <td>{{ row.executiveName | firstCaps }}</td>
             <td>{{ row.branchName || '-' }}</td>
             <td>{{ formatDate(row.orderDate) }}</td>
@@ -122,7 +136,7 @@
             <td>{{ formatDateTime(row.createdAt) }}</td>
           </tr>
           <tr *ngIf="!loading && pagedOrders.length === 0">
-            <td colspan="12" class="empty-row">No orders found</td>
+            <td colspan="13" class="empty-row">No orders found</td>
           </tr>
         </tbody>
       </table>
@@ -133,11 +147,30 @@
   </div>
 </div>
 
+<div class="swal-overlay" *ngIf="swal.visible" (click)="cancelSwal()">
+  <div class="swal-box" (click)="$event.stopPropagation()">
+    <div class="swal-icon" [class.warning]="swal.icon === 'warning'" [class.success]="swal.icon === 'success'" [class.error]="swal.icon === 'error'" [class.info]="swal.icon === 'info'">
+      <span class="material-icons" *ngIf="swal.icon === 'warning'">priority_high</span>
+      <span class="material-icons" *ngIf="swal.icon === 'success'">check</span>
+      <span class="material-icons" *ngIf="swal.icon === 'error'">close</span>
+      <span class="material-icons" *ngIf="swal.icon === 'info'">info</span>
+    </div>
+    <h3>{{ swal.title }}</h3>
+    <p>{{ swal.text }}</p>
+    <input *ngIf="swal.input" type="text" [(ngModel)]="swal.inputValue" [placeholder]="swal.inputPlaceholder" class="swal-input" autofocus/>
+    <div class="swal-error" *ngIf="swal.inputError">{{ swal.inputError }}</div>
+    <div class="swal-actions">
+      <button type="button" class="swal-btn cancel" *ngIf="swal.showCancel" (click)="cancelSwal()">{{ swal.cancelText }}</button>
+      <button type="button" class="swal-btn confirm" (click)="confirmSwal()">{{ swal.confirmText }}</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" *ngIf="showCreateModal" (click)="closeCreateModal()">
   <div class="modal-box order-modal" (click)="$event.stopPropagation()">
     <div class="modal-icon"><span class="material-icons">shopping_bag</span></div>
     <div class="modal-header-row">
-      <h3>Create Order</h3>
+      <h3>{{ editingOrderId ? 'Edit Order' : 'Create Order' }}</h3>
       <div class="modal-actions-top">
         <button class="mini-btn light" type="button" (click)="closeCreateModal()" [disabled]="saving">Cancel</button>
         <button class="mini-btn" type="button" (click)="submitOrder()" [disabled]="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
@@ -221,6 +254,72 @@
       <div class="order-total">
         <span>Total Qty: <strong>{{ totalQty | number:'1.0-2' }}</strong></span>
         <span>Grand Total: <strong>{{ totalAmount | number:'1.2-2' }}</strong></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
+  <div class="modal-box order-modal detail-modal" (click)="$event.stopPropagation()">
+    <div class="modal-icon"><span class="material-icons">shopping_bag</span></div>
+    <div class="modal-header-row">
+      <h3>Order Detail</h3>
+      <div class="modal-actions-top">
+        <button class="mini-btn light" type="button" (click)="closeDetailModal()" [disabled]="statusSaving">Close</button>
+      </div>
+    </div>
+
+    <div class="loading-bar" *ngIf="detailLoading">Loading order...</div>
+    <div class="modal-body" *ngIf="selectedOrder as order">
+      <div class="detail-grid">
+        <div><span>Order ID</span><strong>#{{ order.id }}</strong></div>
+        <div><span>Order No</span><strong>{{ order.orderNo || '-' }}</strong></div>
+        <div><span>Date</span><strong>{{ formatDate(order.orderDate) }}</strong></div>
+        <div><span>Status</span><strong>{{ order.statusName }}</strong></div>
+        <div><span>Primary Customer</span><strong>{{ order.sellerName || '-' }}</strong></div>
+        <div><span>Secondary Customer</span><strong>{{ order.buyerName || '-' }}</strong></div>
+        <div><span>Employee</span><strong>{{ order.executiveName || '-' }}</strong></div>
+        <div><span>Created By</span><strong>{{ order.createdByName || '-' }}</strong></div>
+      </div>
+
+      <div class="items-table detail-items">
+        <div class="detail-row detail-head">
+          <span>#</span>
+          <span>Family</span>
+          <span>Product</span>
+          <span>Qty</span>
+          <span>Shipped</span>
+          <span>Rate</span>
+          <span>Total</span>
+        </div>
+        <div class="detail-row" *ngFor="let detail of selectedOrderDetails; let index = index">
+          <span>{{ index + 1 }}</span>
+          <span>{{ detail.subcategoryName || '-' }}</span>
+          <span>{{ detail.productName || '-' }}</span>
+          <span>{{ detail.quantity | number:'1.0-2' }}</span>
+          <span>{{ detail.shippedQty | number:'1.0-2' }}</span>
+          <span>{{ detail.price | number:'1.2-2' }}</span>
+          <span>{{ detail.lineTotal | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="order-total detail-total">
+        <span>Total Qty: <strong>{{ order.totalQty | number:'1.0-2' }}</strong></span>
+        <span>Shipped Qty: <strong>{{ order.shippedQty | number:'1.0-2' }}</strong></span>
+        <span>Grand Total: <strong>{{ order.grandTotal | number:'1.2-2' }}</strong></span>
+      </div>
+      <div class="detail-remark" *ngIf="order.orderRemark">
+        <span>Remark</span>
+        <p>{{ order.orderRemark }}</p>
+      </div>
+
+      <div class="status-actions">
+        <button type="button" class="mini-btn success" (click)="changeOrderStatus(1)" [disabled]="statusSaving" *ngIf="canDispatch(order)">Fully Dispatched</button>
+        <button type="button" class="mini-btn" (click)="changeOrderStatus(2)" [disabled]="statusSaving" *ngIf="canDispatch(order)">Partially Dispatched</button>
+        <button type="button" class="mini-btn danger" (click)="changeOrderStatus(4)" [disabled]="statusSaving" *ngIf="canDispatch(order)">Cancel</button>
+        <button type="button" class="mini-btn warning" (click)="changeOrderStatus(null)" [disabled]="statusSaving" *ngIf="canMovePending(order)">Pending</button>
+        <button type="button" class="mini-btn danger" disabled *ngIf="order.statusId === 4">Canceled</button>
+        <button type="button" class="mini-btn success" disabled *ngIf="order.statusId === 1">Dispatched</button>
       </div>
     </div>
   </div>

@@ -154,6 +154,13 @@ export class CustomerService {
     );
   }
 
+  setApprovalStatus(id: number, status: 'APPROVED' | 'REJECTED' | 'PENDING', remark?: string | null): Observable<CustomerActionResult> {
+    return this.http.post<ApiResponse>(`${this.baseUrl}/customers/${id}/approval-status`, { status, remark }, { headers: this.authHeaders() }).pipe(
+      map(response => this.actionResult(response, 'customer', 'Status updated successfully')),
+      catchError(error => this.handleError(error))
+    );
+  }
+
   export(filter: CustomerFilter): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/customers/export`, {
       headers: this.authHeaders(),
@@ -244,15 +251,15 @@ export class CustomerService {
       sapCode: this.readNullableString(row['sap_code'] ?? row['sapCode'] ?? row['SapCode']),
       parentId: this.readNullableNumber(row['parent_id'] ?? row['parentId'] ?? row['ParentId']),
       parentName: this.readNullableString(row['parent_name'] ?? row['parentName'] ?? row['ParentName']),
-      countryId: this.readNullableNumber(row['country_id'] ?? row['countryId'] ?? row['CountryId']),
+      countryId: this.readNullableNumber(row['country_id'] ?? row['countryId'] ?? row['CountryId'] ?? fields['country_id']),
       countryName: this.readNullableString(row['country_name'] ?? row['countryName'] ?? row['CountryName']),
-      stateId: this.readNullableNumber(row['state_id'] ?? row['stateId'] ?? row['StateId']),
+      stateId: this.readNullableNumber(row['state_id'] ?? row['stateId'] ?? row['StateId'] ?? fields['state_id']),
       stateName: this.readNullableString(row['state_name'] ?? row['stateName'] ?? row['StateName']),
-      districtId: this.readNullableNumber(row['district_id'] ?? row['districtId'] ?? row['DistrictId']),
+      districtId: this.readNullableNumber(row['district_id'] ?? row['districtId'] ?? row['DistrictId'] ?? fields['district_id']),
       districtName: this.readNullableString(row['district_name'] ?? row['districtName'] ?? row['DistrictName']),
-      cityId: this.readNullableNumber(row['city_id'] ?? row['cityId'] ?? row['CityId']),
+      cityId: this.readNullableNumber(row['city_id'] ?? row['cityId'] ?? row['CityId'] ?? fields['city_id']),
       cityName: this.readNullableString(row['city_name'] ?? row['cityName'] ?? row['CityName']),
-      pincodeId: this.readNullableNumber(row['pincode_id'] ?? row['pincodeId'] ?? row['PincodeId']),
+      pincodeId: this.readNullableNumber(row['pincode_id'] ?? row['pincodeId'] ?? row['PincodeId'] ?? fields['pincode_id']),
       pincode: this.readNullableString(row['pincode'] ?? row['Pincode']),
       createdBy: this.readNullableNumber(row['created_by'] ?? row['createdBy'] ?? row['CreatedBy']),
       createdByName: this.readNullableString(row['created_by_name'] ?? row['createdByName'] ?? row['CreatedByName']),
@@ -268,10 +275,20 @@ export class CustomerService {
   }
 
   private normalizeFields(value: unknown): Record<string, string | null> {
-    const row = this.asRecord(value);
+    const row = typeof value === 'string' ? this.parseJsonRecord(value) : this.asRecord(value);
     const fields: Record<string, string | null> = {};
     Object.entries(row).forEach(([key, item]) => fields[key] = this.readNullableString(item));
     return fields;
+  }
+
+  private parseJsonRecord(value: string): Record<string, unknown> {
+    if (!value.trim()) return {};
+    try {
+      const parsed = JSON.parse(value);
+      return this.asRecord(parsed);
+    } catch {
+      return {};
+    }
   }
 
   private normalizeLocation(value: unknown): LocationDetails {

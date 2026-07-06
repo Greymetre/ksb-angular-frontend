@@ -20,6 +20,7 @@ export interface Order {
   executiveName?: string | null;
   branchName?: string | null;
   totalQty: number;
+  shippedQty: number;
   subTotal: number;
   grandTotal: number;
   statusId?: number | null;
@@ -27,6 +28,28 @@ export interface Order {
   createdByName?: string | null;
   createdAt?: string | null;
   orderType?: string | null;
+  orderRemark?: string | null;
+}
+
+export interface OrderDetail {
+  id: number;
+  productId?: number | null;
+  productName?: string | null;
+  subcategoryId?: number | null;
+  subcategoryName?: string | null;
+  quantity: number;
+  shippedQty: number;
+  price: number;
+  gst: number;
+  taxAmount: number;
+  lineTotal: number;
+  statusId?: number | null;
+  statusName: string;
+}
+
+export interface OrderDetailsResponse {
+  order: Order;
+  orderDetails: OrderDetail[];
 }
 
 export interface OrderFilters {
@@ -139,6 +162,68 @@ export class OrderService {
     );
   }
 
+  getOrder(id: number): Observable<OrderDetailsResponse> {
+    return this.http.get<ApiResponse>(`${this.baseUrl}/orders/${id}`, {
+      headers: this.authHeaders()
+    }).pipe(
+      map(response => ({
+        order: this.normalizeOrder(this.pickFirstValue(response, ['order', 'data.order', 'data']) ?? response),
+        orderDetails: this.pickArray(response, ['order_details', 'orderDetails', 'data.order_details', 'data.orderDetails'])
+          .map(row => this.normalizeOrderDetail(row))
+          .filter(row => row.id > 0)
+      })),
+      catchError(error => this.handleError(error))
+    );
+  }
+
+  updateOrder(id: number, payload: OrderPayload): Observable<{ order?: Order; message: string }> {
+    return this.http.put<ApiResponse>(`${this.baseUrl}/orders/${id}`, this.toApiPayload(payload), {
+      headers: this.authHeaders()
+    }).pipe(
+      map(response => {
+        const order = this.pickFirstValue(response, ['order', 'data.order']);
+        return { order: order ? this.normalizeOrder(order) : undefined, message: this.responseMessage(response) || 'Order Updated Successfully' };
+      }),
+      catchError(error => this.handleError(error))
+    );
+  }
+
+  deleteOrder(id: number): Observable<{ message: string }> {
+    return this.http.delete<ApiResponse>(`${this.baseUrl}/orders/${id}`, {
+      headers: this.authHeaders()
+    }).pipe(
+      map(response => ({ message: this.responseMessage(response) || 'Order deleted successfully!' })),
+      catchError(error => this.handleError(error))
+    );
+  }
+
+  setActive(id: number, active: string): Observable<{ order?: Order; message: string }> {
+    return this.http.post<ApiResponse>(`${this.baseUrl}/orders/${id}/active`, { active }, {
+      headers: this.authHeaders()
+    }).pipe(
+      map(response => {
+        const order = this.pickFirstValue(response, ['order', 'data.order']);
+        return { order: order ? this.normalizeOrder(order) : undefined, message: this.responseMessage(response) || 'Status changed successfully' };
+      }),
+      catchError(error => this.handleError(error))
+    );
+  }
+
+  setStatus(id: number, statusId: number | null, remark?: string | null): Observable<{ order?: Order; message: string }> {
+    return this.http.post<ApiResponse>(`${this.baseUrl}/orders/${id}/status`, {
+      status_id: statusId,
+      remark
+    }, {
+      headers: this.authHeaders()
+    }).pipe(
+      map(response => {
+        const order = this.pickFirstValue(response, ['order', 'data.order']);
+        return { order: order ? this.normalizeOrder(order) : undefined, message: this.responseMessage(response) || 'Order status updated successfully !!' };
+      }),
+      catchError(error => this.handleError(error))
+    );
+  }
+
   exportOrders(filters: OrderFilters = {}): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/orders/export`, {
       headers: this.authHeaders(),
@@ -206,13 +291,34 @@ export class OrderService {
       executiveName: this.readNullableString(row['executiveName'] ?? row['executive_name'] ?? row['ExecutiveName']),
       branchName: this.readNullableString(row['branchName'] ?? row['branch_name'] ?? row['BranchName']),
       totalQty: this.readNumber(row['totalQty'] ?? row['total_qty'] ?? row['TotalQty']),
+      shippedQty: this.readNumber(row['shippedQty'] ?? row['shipped_qty'] ?? row['ShippedQty']),
       subTotal: this.readNumber(row['subTotal'] ?? row['sub_total'] ?? row['SubTotal']),
       grandTotal: this.readNumber(row['grandTotal'] ?? row['grand_total'] ?? row['GrandTotal']),
       statusId: this.readNullableNumber(row['statusId'] ?? row['status_id'] ?? row['StatusId']),
       statusName: this.readString(row['statusName'] ?? row['status_name'] ?? row['StatusName']) || 'Pending',
       createdByName: this.readNullableString(row['createdByName'] ?? row['created_by_name'] ?? row['CreatedByName']),
       createdAt: this.readNullableString(row['createdAt'] ?? row['created_at'] ?? row['CreatedAt']),
-      orderType: this.readNullableString(row['orderType'] ?? row['order_type'] ?? row['OrderType'])
+      orderType: this.readNullableString(row['orderType'] ?? row['order_type'] ?? row['OrderType']),
+      orderRemark: this.readNullableString(row['orderRemark'] ?? row['order_remark'] ?? row['OrderRemark'])
+    };
+  }
+
+  private normalizeOrderDetail(value: unknown): OrderDetail {
+    const row = this.asRecord(value);
+    return {
+      id: this.readNumber(row['id'] ?? row['Id']),
+      productId: this.readNullableNumber(row['productId'] ?? row['product_id'] ?? row['ProductId']),
+      productName: this.readNullableString(row['productName'] ?? row['product_name'] ?? row['ProductName']),
+      subcategoryId: this.readNullableNumber(row['subcategoryId'] ?? row['subcategory_id'] ?? row['SubcategoryId']),
+      subcategoryName: this.readNullableString(row['subcategoryName'] ?? row['subcategory_name'] ?? row['SubcategoryName']),
+      quantity: this.readNumber(row['quantity'] ?? row['Quantity']),
+      shippedQty: this.readNumber(row['shippedQty'] ?? row['shipped_qty'] ?? row['ShippedQty']),
+      price: this.readNumber(row['price'] ?? row['Price']),
+      gst: this.readNumber(row['gst'] ?? row['Gst']),
+      taxAmount: this.readNumber(row['taxAmount'] ?? row['tax_amount'] ?? row['TaxAmount']),
+      lineTotal: this.readNumber(row['lineTotal'] ?? row['line_total'] ?? row['LineTotal']),
+      statusId: this.readNullableNumber(row['statusId'] ?? row['status_id'] ?? row['StatusId']),
+      statusName: this.readString(row['statusName'] ?? row['status_name'] ?? row['StatusName']) || 'Pending'
     };
   }
 

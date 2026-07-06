@@ -2,13 +2,28 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { finalize, timeout } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { UserOption } from '../../services/user.service';
-import { Order, OrderDetailPayload, OrderFilters, OrderProductOption, OrderService } from '../../services/order.service';
+import { Order, OrderDetail, OrderDetailPayload, OrderFilters, OrderProductOption, OrderService } from '../../services/order.service';
 import { kolkataTodayInput } from '../../shared/utils/date-time';
 
 interface ToastModel {
   visible: boolean;
   message: string;
   type: 'success' | 'error';
+}
+
+interface SwalModel {
+  visible: boolean;
+  title: string;
+  text: string;
+  icon: 'warning' | 'success' | 'error' | 'info';
+  confirmText: string;
+  cancelText: string;
+  showCancel: boolean;
+  input: boolean;
+  inputValue: string;
+  inputPlaceholder: string;
+  inputError: string;
+  resolver?: (result: { isConfirmed: boolean; value?: string }) => void;
 }
 
 interface OrderRow extends OrderDetailPayload {
@@ -49,8 +64,15 @@ export class OrdersComponent implements OnInit {
   exporting = false;
   showFilters = false;
   showCreateModal = false;
+  showDetailModal = false;
   errorMessage = '';
+  detailLoading = false;
+  statusSaving = false;
+  selectedOrder: Order | null = null;
+  selectedOrderDetails: OrderDetail[] = [];
+  editingOrderId: number | null = null;
   toast: ToastModel = { visible: false, message: '', type: 'success' };
+  swal: SwalModel = this.emptySwal();
   private toastTimeoutId?: number;
   private searchTimeoutId?: number;
 
@@ -77,6 +99,22 @@ export class OrdersComponent implements OnInit {
 
   get canCreate(): boolean {
     return this.authService.hasAnyPermission(['order_access', 'order_create']);
+  }
+
+  get canEdit(): boolean {
+    return this.authService.hasAnyPermission(['order_access', 'order_edit']);
+  }
+
+  get canShow(): boolean {
+    return this.authService.hasAnyPermission(['order_access', 'order_show']);
+  }
+
+  get canDelete(): boolean {
+    return this.authService.hasAnyPermission(['order_access', 'order_delete']);
+  }
+
+  get canPending(): boolean {
+    return this.authService.hasPermission('pendding_orders') || this.authService.hasAnyPermission(['order_access', 'order_edit']);
   }
 
   get canExport(): boolean {
@@ -169,6 +207,7 @@ export class OrdersComponent implements OnInit {
 
   openCreateModal(): void {
     this.form = this.emptyForm();
+    this.editingOrderId = null;
     this.showCreateModal = true;
     this.errorMessage = '';
     this.refreshView();
@@ -177,7 +216,66 @@ export class OrdersComponent implements OnInit {
   closeCreateModal(): void {
     if (this.saving) return;
     this.showCreateModal = false;
+    this.editingOrderId = null;
     this.refreshView();
+  }
+
+  openDetail(row: Order): void {
+    this.showDetailModal = true;
+    this.detailLoading = true;
+    this.selectedOrder = row;
+    this.selectedOrderDetails = [];
+    this.orderService.getOrder(row.id).pipe(finalize(() => {
+      this.detailLoading = false;
+      this.refreshView();
+    })).subscribe({
+      next: result => {
+        this.selectedOrder = result.order;
+        this.selectedOrderDetails = result.orderDetails;
+      },
+      error: error => this.showToast(error.message, 'error')
+    });
+  }
+
+  closeDetailModal(): void {
+    if (this.statusSaving) return;
+    this.showDetailModal = false;
+    this.selectedOrder = null;
+    this.selectedOrderDetails = [];
+    this.refreshView();
+  }
+
+  editOrder(row: Order): void {
+    this.detailLoading = true;
+    this.orderService.getOrder(row.id).pipe(finalize(() => {
+      this.detailLoading = false;
+      this.refreshView();
+    })).subscribe({
+      next: result => {
+        this.editingOrderId = row.id;
+        this.form = {
+          orderDate: this.toInputDate(result.order.orderDate) || kolkataTodayInput(),
+          executiveId: result.order.executiveId ?? null,
+          type: result.order.orderType === 'MASTER_DISTRIBUTER' ? 'DISTRIBUTER' : 'RETAILER',
+          buyerId: result.order.buyerId ?? null,
+          sellerId: result.order.sellerId ?? null,
+          orderRemark: result.order.orderRemark ?? '',
+          rows: result.orderDetails.length ? result.orderDetails.map(detail => ({
+            subcategoryId: detail.subcategoryId ?? null,
+            productId: detail.productId ?? null,
+            quantity: detail.quantity,
+            mrp: detail.price,
+            gst: detail.gst,
+            taxAmount: detail.taxAmount,
+            lineTotal: detail.lineTotal,
+            products: detail.productId ? [{ id: detail.productId, name: detail.productName || 'Selected Product', productCode: null, hsnSac: detail.price, price: detail.price }] : [],
+            loadingProducts: false
+          })) : [this.emptyRow()]
+        };
+        this.showCreateModal = true;
+      },
+      error: error => this.showToast(error.message, 'error')
+    });
   }
 
   onTypeChange(): void {
@@ -245,7 +343,7 @@ export class OrdersComponent implements OnInit {
     }
 
     this.saving = true;
-    this.orderService.createOrder({
+    const payload = {
       orderDate: this.form.orderDate,
       executiveId: this.form.executiveId,
       type: this.form.type,
@@ -265,12 +363,19 @@ export class OrdersComponent implements OnInit {
         taxAmount: 0,
         lineTotal: Number(row.lineTotal) || 0
       }))
-    }).pipe(finalize(() => {
+    };
+
+    const request = this.editingOrderId
+      ? this.orderService.updateOrder(this.editingOrderId, payload)
+      : this.orderService.createOrder(payload);
+
+    request.pipe(finalize(() => {
       this.saving = false;
       this.refreshView();
     })).subscribe({
       next: result => {
         this.showCreateModal = false;
+        this.editingOrderId = null;
         this.showToast(result.message, 'success');
         this.loadOrders();
       },
@@ -300,6 +405,92 @@ export class OrdersComponent implements OnInit {
     if (!value) return '-';
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? value : date.toLocaleString('en-IN');
+  }
+
+  async deleteOrder(row: Order): Promise<void> {
+    const result = await this.fireSwal({
+      title: 'Are you sure?',
+      text: `Delete order ${row.orderNo || '#' + row.id}?`,
+      icon: 'warning',
+      confirmText: 'Yes, Delete'
+    });
+    if (!result.isConfirmed) return;
+
+    this.orderService.deleteOrder(row.id).subscribe({
+      next: result => {
+        this.showToast(result.message, 'success');
+        this.loadOrders();
+      },
+      error: error => this.showToast(error.message, 'error')
+    });
+  }
+
+  canDispatch(order: Order | null): boolean {
+    return !!order && order.statusId !== 1 && order.statusId !== 4;
+  }
+
+  canMovePending(order: Order | null): boolean {
+    return !!order && order.statusId !== null && order.statusId !== undefined && this.canPending;
+  }
+
+  async changeOrderStatus(statusId: number | null): Promise<void> {
+    if (!this.selectedOrder) return;
+    let remark: string | null = null;
+    if (statusId === 4) {
+      const result = await this.fireSwal({
+        title: 'Are you sure?',
+        text: 'Enter remark:',
+        icon: 'warning',
+        confirmText: 'Yes Cancle',
+        input: true,
+        inputPlaceholder: 'Remark'
+      });
+      if (!result.isConfirmed) return;
+      remark = result.value ?? '';
+      if (!remark) {
+        this.showToast('Remark is required for cancel.', 'error');
+        return;
+      }
+    } else {
+      const result = await this.fireSwal({
+        title: 'Are you sure?',
+        text: this.statusConfirmText(statusId),
+        icon: 'warning',
+        confirmText: 'Yes'
+      });
+      if (!result.isConfirmed) return;
+    }
+
+    this.statusSaving = true;
+    this.orderService.setStatus(this.selectedOrder.id, statusId, remark).pipe(finalize(() => {
+      this.statusSaving = false;
+      this.refreshView();
+    })).subscribe({
+      next: result => {
+        this.showToast(result.message, 'success');
+        this.closeDetailModal();
+        this.loadOrders();
+      },
+      error: error => this.showToast(error.message, 'error')
+    });
+  }
+
+  confirmSwal(): void {
+    if (this.swal.input && !this.swal.inputValue.trim()) {
+      this.swal = { ...this.swal, inputError: 'You need to write something!' };
+      this.refreshView();
+      return;
+    }
+
+    this.swal.resolver?.({ isConfirmed: true, value: this.swal.inputValue.trim() });
+    this.swal = this.emptySwal();
+    this.refreshView();
+  }
+
+  cancelSwal(): void {
+    this.swal.resolver?.({ isConfirmed: false });
+    this.swal = this.emptySwal();
+    this.refreshView();
   }
 
   private currentFilters(): OrderFilters {
@@ -342,6 +533,13 @@ export class OrdersComponent implements OnInit {
     };
   }
 
+  private toInputDate(value?: string | null): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value.slice(0, 10);
+    return date.toISOString().slice(0, 10);
+  }
+
   private get safeShowEntries(): number {
     const value = Number(this.showEntries);
     return Number.isFinite(value) && value > 0 ? Math.floor(value) : 10;
@@ -356,6 +554,40 @@ export class OrdersComponent implements OnInit {
       this.refreshView();
     }, 3500);
     this.refreshView();
+  }
+
+  private fireSwal(options: Partial<Omit<SwalModel, 'visible' | 'resolver' | 'inputValue' | 'inputError'>>): Promise<{ isConfirmed: boolean; value?: string }> {
+    return new Promise(resolve => {
+      this.swal = {
+        ...this.emptySwal(),
+        ...options,
+        visible: true,
+        resolver: resolve
+      };
+      this.refreshView();
+    });
+  }
+
+  private emptySwal(): SwalModel {
+    return {
+      visible: false,
+      title: '',
+      text: '',
+      icon: 'warning',
+      confirmText: 'Yes',
+      cancelText: 'No',
+      showCancel: true,
+      input: false,
+      inputValue: '',
+      inputPlaceholder: '',
+      inputError: ''
+    };
+  }
+
+  private statusConfirmText(statusId: number | null): string {
+    if (statusId === 1) return 'Mark this order as fully dispatched?';
+    if (statusId === 2) return 'Mark this order as partially dispatched?';
+    return 'Move this order back to pending?';
   }
 
   private refreshView(): void {

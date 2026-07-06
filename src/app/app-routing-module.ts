@@ -3,11 +3,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { RetailersComponent } from './pages/retailers/retailers.component';
-import { RetailerCreateComponent } from './pages/retailers/retailer-create/retailer-create.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
 import { ProductMasterComponent } from './pages/product-master/product-master.component';
-import { DistributorsComponent } from './pages/distributors/distributors.component';
 import { RolesComponent } from './pages/roles/roles.component';
 import { UsersComponent } from './pages/users/users.component';
 import { CustomersComponent } from './pages/customers/customers.component';
@@ -38,9 +35,9 @@ const routes: Routes = [
         component: ForbiddenComponent
       },
       { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard], data: { permission: 'dashboard_access' } },
-      { path: 'retailers', component: RetailersComponent, canActivate: [authGuard], data: { permission: 'retailer_view' } },
-      { path: 'retailers/create', component: RetailerCreateComponent, canActivate: [authGuard], data: { permission: 'retailer_create' } },
-      { path: 'distributors', component: DistributorsComponent, canActivate: [authGuard], data: { permission: 'distributor_view' } },
+      { path: 'retailers', redirectTo: '/customers' },
+      { path: 'retailers/create', redirectTo: '/customers' },
+      { path: 'distributors', redirectTo: '/customers' },
       { path: 'categories', redirectTo: '/segments' },
       { path: 'segments', component: ProductMasterComponent, canActivate: [authGuard], data: { permission: 'category_access', productMode: 'segment' } },
       { path: 'families', component: ProductMasterComponent, canActivate: [authGuard], data: { permission: 'subcategory_access', productMode: 'family' } },

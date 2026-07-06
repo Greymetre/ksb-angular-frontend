@@ -20,11 +20,8 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout.component'
 // Pages
 import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { RetailersComponent } from './pages/retailers/retailers.component';
-import { RetailerCreateComponent } from './pages/retailers/retailer-create/retailer-create.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
 import { ProductMasterComponent } from './pages/product-master/product-master.component';
-import { DistributorsComponent } from './pages/distributors/distributors.component';
 import { RolesComponent } from './pages/roles/roles.component';
 import { UsersComponent } from './pages/users/users.component';
 import { CustomersComponent } from './pages/customers/customers.component';
@@ -53,11 +50,8 @@ import { OrdersComponent } from './pages/orders/orders.component';
     MainLayoutComponent,
     LoginComponent,
     DashboardComponent,
-    RetailersComponent,
-    RetailerCreateComponent,
     CategoriesComponent,
     ProductMasterComponent,
-    DistributorsComponent,
     RolesComponent,
     UsersComponent,
     CustomersComponent,

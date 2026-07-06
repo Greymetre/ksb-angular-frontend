@@ -208,7 +208,10 @@
 
 .btn-view,
 .btn-edit,
-.btn-danger {
+.btn-danger,
+.btn-approve,
+.btn-reject,
+.btn-pending {
   width: 28px;
   height: 28px;
   border: none;
@@ -220,11 +223,34 @@
   justify-content: center;
 
   .material-icons { font-size: 15px; }
+
+  &:disabled {
+    opacity: .55;
+    cursor: wait;
+  }
 }
 
 .btn-view { background: #17a2b8; }
 .btn-edit { background: var(--primary-blue); }
 .btn-danger { background: var(--danger-red); }
+.btn-approve { background: #16a34a; }
+.btn-reject { background: #dc2626; }
+.btn-pending { background: #f59e0b; }
+
+.approval-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 3px 9px;
+  border-radius: 4px;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+
+  &.pending { background: #f59e0b; }
+  &.approved { background: #16a34a; }
+  &.rejected { background: #dc2626; }
+}
 
 .table-footer {
   min-width: 1100px;

@@ -72,6 +72,7 @@
           <th>No <span class="material-icons sort-icon">arrow_upward</span></th>
           <th>Action</th>
           <th>Active</th>
+          <th>Approval</th>
           <th>Customer Type</th>
           <th>Name</th>
           <th>Mobile</th>
@@ -95,6 +96,15 @@
               <button class="btn-danger" title="Delete Customer" (click)="deleteCustomer(customer)" *ngIf="canDelete">
                 <span class="material-icons">close</span>
               </button>
+              <button class="btn-approve" title="Approve Retailer" (click)="changeApprovalStatus(customer, 'APPROVED')" *ngIf="canApproveRetailer && isRetailerCustomer(customer)" [disabled]="approvalSavingId === customer.id">
+                <span class="material-icons">check_circle</span>
+              </button>
+              <button class="btn-reject" title="Reject Retailer" (click)="changeApprovalStatus(customer, 'REJECTED')" *ngIf="canApproveRetailer && isRetailerCustomer(customer)" [disabled]="approvalSavingId === customer.id">
+                <span class="material-icons">cancel</span>
+              </button>
+              <button class="btn-pending" title="Mark Pending" (click)="changeApprovalStatus(customer, 'PENDING')" *ngIf="canApproveRetailer && isRetailerCustomer(customer)" [disabled]="approvalSavingId === customer.id">
+                <span class="material-icons">hourglass_empty</span>
+              </button>
             </div>
           </td>
           <td>
@@ -102,6 +112,9 @@
               <input type="checkbox" [checked]="customer.active === 'Y'" (change)="toggleActive(customer, $event)" [disabled]="!canEdit"/>
               <span class="slider"></span>
             </label>
+          </td>
+          <td>
+            <span *ngIf="isRetailerCustomer(customer)" [class]="approvalBadgeClass(customer)">{{ approvalStatus(customer) }}</span>
           </td>
           <td>{{ typeName(customer) }}</td>
           <td class="name-cell">{{ customer.name }}</td>
@@ -112,7 +125,7 @@
           <td>{{ formatDate(customer.createdAt) }}</td>
         </tr>
         <tr *ngIf="!loading && filteredCustomers.length === 0">
-          <td colspan="10" class="empty-row">No customers found</td>
+          <td colspan="11" class="empty-row">No customers found</td>
         </tr>
       </tbody>
     </table>

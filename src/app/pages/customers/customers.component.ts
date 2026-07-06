@@ -23,6 +23,8 @@ interface ToastModel {
   type: 'success' | 'error';
 }
 
+type RetailerApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
 interface CustomerFormModel {
   id: number | null;
   active: string;
@@ -83,6 +85,7 @@ export class CustomersComponent implements OnInit {
   currentPage = 1;
   loading = false;
   saving = false;
+  approvalSavingId: number | null = null;
   uploading = false;
   exporting = false;
   templating = false;
@@ -154,6 +157,10 @@ export class CustomersComponent implements OnInit {
   }
 
   get canEdit(): boolean {
+    return this.authService.hasPermission('customer_edit');
+  }
+
+  get canApproveRetailer(): boolean {
     return this.authService.hasPermission('customer_edit');
   }
 
@@ -354,6 +361,35 @@ export class CustomersComponent implements OnInit {
         this.showToast(result.message, 'success');
         this.loadCustomers();
         if (customer.customerType === 1) this.loadDistributors();
+      },
+      error: error => this.showToast(error.message, 'error')
+    });
+  }
+
+  changeApprovalStatus(customer: CustomerItem, status: RetailerApprovalStatus): void {
+    if (!this.isRetailerCustomer(customer)) return;
+
+    let remark: string | null = null;
+    if (status === 'REJECTED') {
+      remark = window.prompt('Enter reject remark')?.trim() || '';
+      if (!remark) return;
+    } else if (!window.confirm(`Change retailer status to ${status}?`)) {
+      return;
+    }
+
+    this.approvalSavingId = customer.id;
+    this.customerService.setApprovalStatus(customer.id, status, remark).pipe(finalize(() => {
+      this.approvalSavingId = null;
+      this.refreshView();
+    })).subscribe({
+      next: result => {
+        const updatedCustomer = result.item;
+        if (updatedCustomer) {
+          this.customers = this.customers.map(item => item.id === customer.id ? updatedCustomer : item);
+        } else {
+          customer.customFields = { ...customer.customFields, status, remark };
+        }
+        this.showToast(result.message, 'success');
       },
       error: error => this.showToast(error.message, 'error')
     });
@@ -603,6 +639,21 @@ export class CustomersComponent implements OnInit {
 
   typeName(customer: CustomerItem): string {
     return customer.customerTypeName || this.customerTypes.find(type => type.id === customer.customerType)?.label || `Type ${customer.customerType}`;
+  }
+
+  isRetailerCustomer(customer: CustomerItem): boolean {
+    const typeName = this.typeName(customer).toLowerCase();
+    const fieldType = customer.customFields['customer_type'];
+    return customer.customerType === 2 || fieldType === '2' || typeName.includes('retailer');
+  }
+
+  approvalStatus(customer: CustomerItem): RetailerApprovalStatus {
+    const status = (customer.customFields['status'] || customer.customFields['visit_status'] || 'PENDING').toUpperCase();
+    return status === 'APPROVED' || status === 'REJECTED' ? status : 'PENDING';
+  }
+
+  approvalBadgeClass(customer: CustomerItem): string {
+    return `approval-badge ${this.approvalStatus(customer).toLowerCase()}`;
   }
 
   distributorLabel(customer: CustomerItem): string {

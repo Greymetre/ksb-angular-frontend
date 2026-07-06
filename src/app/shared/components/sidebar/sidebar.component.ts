@@ -46,8 +46,6 @@ export class SidebarComponent {
     //   label: 'Customer Management',
     //   icon: 'store',
     //   children: [
-    //     { label: 'Master Distributor', icon: 'inventory', route: '/distributors', permission: 'master_distributor_access' },
-    //     { label: 'Retailer', icon: 'storefront', route: '/retailers', permission: 'retailer_access' }
     //   ]
     // },
     { label: 'Customers Management', icon: 'transcribe', route: '/customers', permission: 'customer_access' },
@@ -298,7 +296,6 @@ export class SidebarComponent {
           icon: 'support_agent',
           permission: 'customers_report_access',
           children: [
-            // { label: 'Retailer', icon: 'storefront', route: '/retailers', permission: 'retailer_access' },
             { label: 'Retailer Performance', icon: 'summarize', permission: 'retailer_productivity_report' },
             { label: 'Customer Master', icon: 'contact_emergency', permission: 'customers_report' },
             // { label: 'Calling Report', icon: 'dialpad', permission: 'calling_report' },
