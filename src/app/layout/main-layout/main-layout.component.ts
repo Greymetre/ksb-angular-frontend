@@ -7,5 +7,5 @@ import { Component } from '@angular/core';
   styleUrls: ['./main-layout.component.scss']
 })
 export class MainLayoutComponent {
-  sidebarCollapsed = false;
+  sidebarCollapsed = true;
 }

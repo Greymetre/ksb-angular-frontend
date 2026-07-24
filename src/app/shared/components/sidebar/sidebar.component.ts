@@ -21,7 +21,8 @@ interface MenuItem {
 export class SidebarComponent {
   @Output() collapsedChange = new EventEmitter<boolean>();
 
-  collapsed = false;
+  collapsed = true;
+  hoverExpanded = false;
   tooltipLabel = '';
   tooltipTop = 0;
 
@@ -354,14 +355,29 @@ export class SidebarComponent {
     this.collapsedChange.emit(this.collapsed);
   }
 
-  showTooltip(item: MenuItem, event: MouseEvent) {
+  expandOnHover() {
     if (!this.collapsed) return;
+    this.hoverExpanded = true;
+    this.hideTooltip();
+  }
+
+  collapseAfterHover() {
+    this.hoverExpanded = false;
+    this.hideTooltip();
+  }
+
+  get visuallyCollapsed() {
+    return this.collapsed && !this.hoverExpanded;
+  }
+
+  showTooltip(item: MenuItem, event: MouseEvent) {
+    if (!this.visuallyCollapsed) return;
     this.tooltipLabel = item.label;
     this.moveTooltip(event);
   }
 
   moveTooltip(event: MouseEvent) {
-    if (!this.collapsed || !this.tooltipLabel) return;
+    if (!this.visuallyCollapsed || !this.tooltipLabel) return;
     this.tooltipTop = event.clientY;
   }
 
