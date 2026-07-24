@@ -45,8 +45,10 @@
                   <input type="text" [value]="formatMoney(selectedInvoice.amount)" readonly />
                 </div>
                 <div class="readonly-field">
-                  <label>Scheme Points</label>
-                  <input type="text" [value]="selectedInvoice.schemePoints | number:'1.2-2'" readonly />
+                  <label>{{ selectedInvoice.approvalStatus === 3 ? 'Reward Earned' : 'Expected Reward' }}</label>
+                  <input type="text"
+                    [value]="(selectedInvoice.approvalStatus === 3 ? selectedInvoice.schemePoints : (selectedInvoice.approvalStatus === 4 ? 0 : selectedInvoice.expectedSchemePoints)) | number:'1.2-2'"
+                    readonly />
                 </div>
                 <div class="readonly-field">
                   <label>Scheme</label>
@@ -295,7 +297,7 @@
             <th>Sales Approval</th>
             <th>HO Approval</th>
             <th>Scheme Name</th>
-            <th class="points-column">Points</th>
+            <th class="points-column">Reward</th>
             <th>Attachment</th>
             <th>Status</th>
           </tr>
@@ -359,8 +361,12 @@
               <div class="name-cell">{{ invoice.schemeName || '-' }}</div>
             </td>
             <td class="points-column">
-              <span class="name-cell">{{ invoice.schemePoints | number:'1.2-2' }} </span>
-              <!-- <small class="scheme-tier" *ngIf="invoice.schemePoints > 0">{{ invoice.tierName }}</small> -->
+              <span class="name-cell">
+                {{ (invoice.approvalStatus === 3 ? invoice.schemePoints : (invoice.approvalStatus === 4 ? 0 : invoice.expectedSchemePoints)) | number:'1.2-2' }}
+              </span>
+              <small class="scheme-tier">
+                {{ invoice.approvalStatus === 3 ? 'Reward Earned' : (invoice.approvalStatus === 4 ? 'Rejected' : 'Expected Reward') }}
+              </small>
               <small class="hint-text" *ngIf="invoice.schemeHintMessage">{{ invoice.schemeHintMessage }}</small>
             </td>
             <td>
@@ -485,6 +491,10 @@
         <div>
           <span>Amount</span>
           <strong>{{ formatMoney(approvalDialog.invoice.amount) }}</strong>
+        </div>
+        <div>
+          <span>Expected Reward</span>
+          <strong>{{ approvalDialog.invoice.expectedSchemePoints | number:'1.2-2' }}</strong>
         </div>
       </div>
 

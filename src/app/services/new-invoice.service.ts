@@ -27,6 +27,7 @@ export interface NewInvoiceItem {
   schemeBasedOn?: string | null;
   schemeRewardValue?: number | null;
   schemePoints: number;
+  expectedSchemePoints: number;
   tierName?: string | null;
   schemeHintMessage?: string | null;
   attachment?: string | null;
@@ -281,6 +282,7 @@ export class NewInvoiceService {
       schemeBasedOn: this.readNullableString(row['scheme_based_on'] ?? row['schemeBasedOn']),
       schemeRewardValue: this.nullableNumber(row['scheme_reward_value'] ?? row['schemeRewardValue']),
       schemePoints: this.readNumber(row['scheme_points'] ?? row['schemePoints']),
+      expectedSchemePoints: this.readNumber(row['expected_scheme_points'] ?? row['expectedSchemePoints']),
       tierName: this.readNullableString(row['tier_name'] ?? row['tierName']),
       schemeHintMessage: this.readNullableString(row['scheme_hint_message'] ?? row['schemeHintMessage']),
       attachment: this.readNullableString(row['attachment']),

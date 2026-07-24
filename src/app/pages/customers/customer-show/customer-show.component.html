@@ -162,7 +162,7 @@
                 <th>Invoice Number</th>
                 <th>Amount</th>
                 <th>Scheme Name</th>
-                <th>Points</th>
+                <th>Reward</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -172,7 +172,10 @@
                 <td>{{ invoice.invoiceNumber }}</td>
                 <td>{{ invoice.amount | currency:'INR':'symbol':'1.2-2' }}</td>
                 <td>{{ invoice.schemeName || '-' }}</td>
-                <td><strong>{{ invoice.schemePoints | number:'1.0-2' }}</strong></td>
+                <td>
+                  <strong>{{ (invoice.approvalStatus === 3 ? invoice.schemePoints : (invoice.approvalStatus === 4 ? 0 : invoice.expectedSchemePoints)) | number:'1.0-2' }}</strong>
+                  <small>{{ invoice.approvalStatus === 3 ? 'Reward Earned' : (invoice.approvalStatus === 4 ? 'Rejected' : 'Expected Reward') }}</small>
+                </td>
                 <td><span class="status-badge" [ngClass]="statusClass(invoice.approvalStatus)">{{ invoice.approvalStatusLabel }}</span></td>
               </tr>
             </tbody>
