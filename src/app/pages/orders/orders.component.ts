@@ -134,7 +134,7 @@ export class OrdersComponent implements OnInit {
   }
 
   get showBuyer(): boolean {
-    return this.form.type !== 'DISTRIBUTER';
+    return this.form.type !== 'DEALER';
   }
 
   loadOrders(): void {
@@ -256,7 +256,7 @@ export class OrdersComponent implements OnInit {
         this.form = {
           orderDate: this.toInputDate(result.order.orderDate) || kolkataTodayInput(),
           executiveId: result.order.executiveId ?? null,
-          type: result.order.orderType === 'MASTER_DISTRIBUTER' ? 'DISTRIBUTER' : 'RETAILER',
+          type: result.order.orderType === 'MASTER_DISTRIBUTER' ? 'DEALER' : 'RETAILER',
           buyerId: result.order.buyerId ?? null,
           sellerId: result.order.sellerId ?? null,
           orderRemark: result.order.orderRemark ?? '',
@@ -329,7 +329,7 @@ export class OrdersComponent implements OnInit {
 
   submitOrder(): void {
     if (!this.form.orderDate || !this.form.executiveId || !this.form.type || !this.form.sellerId) {
-      this.showToast('Order Date, Employee, Customer Type and Dealer / Distributor are required.', 'error');
+      this.showToast('Order Date, Employee, Customer Type and Dealer are required.', 'error');
       return;
     }
     if (this.showBuyer && !this.form.buyerId) {

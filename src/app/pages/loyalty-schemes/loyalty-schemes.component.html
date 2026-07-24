@@ -65,11 +65,12 @@
             <td>
               <div class="action-btns">
                 <button class="btn-show" title="Show Scheme" (click)="openView(scheme)" *ngIf="canShow"><span class="material-icons">visibility</span></button>
-                <button class="btn-edit" title="Edit" (click)="openEdit(scheme)" *ngIf="canEdit && scheme.status !== 'Expired' && (scheme.workflowStatus === 'Draft' || scheme.workflowStatus === 'Rejected')"><span class="material-icons">edit</span></button>
+                <button class="btn-edit" title="Edit" (click)="openEdit(scheme)" *ngIf="canEditScheme(scheme)"><span class="material-icons">edit</span></button>
+                <button class="btn-submit-stage" title="Send to Draft" (click)="sendToDraft(scheme)" *ngIf="canSendToDraft(scheme)"><span class="material-icons">undo</span></button>
                 <button class="btn-submit-stage" title="Submit to Next Level" (click)="submitScheme(scheme)" *ngIf="canSubmit && scheme.status !== 'Expired' && (scheme.workflowStatus === 'Draft' || scheme.workflowStatus === 'Rejected')"><span class="material-icons">forward</span></button>
                 <button class="btn-approve" title="Approve or Reject" (click)="openWorkflowDialog(scheme)" *ngIf="(canApprove || canReject) && scheme.status !== 'Expired' && scheme.workflowStatus === 'Pending Approval'"><span class="material-icons">fact_check</span></button>
                 <button class="btn-publish" title="Publish" (click)="publishScheme(scheme)" *ngIf="canPublish && scheme.workflowStatus === 'Approved' && scheme.status !== 'Expired'"><span class="material-icons">publish</span></button>
-                <button class="btn-danger" title="Delete" (click)="deleteScheme(scheme)" *ngIf="canDelete && scheme.status !== 'Expired' && (scheme.workflowStatus === 'Draft' || scheme.workflowStatus === 'Rejected')"><span class="material-icons">close</span></button>
+                <button class="btn-danger" title="Soft Delete" (click)="deleteScheme(scheme)" *ngIf="canDeleteScheme(scheme)"><span class="material-icons">delete</span></button>
               </div>
             </td>
             <td class="name-cell">{{ scheme.schemeName }}</td>

@@ -56,7 +56,7 @@ interface WorkflowDialog {
 export class LoyaltySchemesComponent implements OnInit {
   schemes: LoyaltyScheme[] = [];
   options: LoyaltySchemeOptions = { branches: [], zones: [], states: [], customers: [] };
-  customerTypes = ['Retailer', 'Influencers', 'Plumber', 'Retailer + Plumber', 'Sub-Dealer', 'Distributor'];
+  customerTypes = ['Dealer', 'Retailer', 'Influencer'];
   schemeTags = ['Regular', 'Booster'];
   areaScopes = ['All', 'Branch', 'Zone', 'State', 'Customer'];
   basedOnOptions = ['Value', 'Percentage'];
@@ -138,6 +138,23 @@ export class LoyaltySchemesComponent implements OnInit {
 
   get canDelete(): boolean {
     return this.authService.hasPermission('scheme_delete');
+  }
+
+  get isSuperAdmin(): boolean {
+    return this.authService.isSuperAdminUser();
+  }
+
+  canEditScheme(scheme: LoyaltyScheme): boolean {
+    return this.isSuperAdmin || (this.canEdit && scheme.workflowStatus !== 'Published');
+  }
+
+  canDeleteScheme(scheme: LoyaltyScheme): boolean {
+    return this.isSuperAdmin || (this.canDelete && ['Draft', 'Rejected'].includes(scheme.workflowStatus));
+  }
+
+  canSendToDraft(scheme: LoyaltyScheme): boolean {
+    return scheme.workflowStatus !== 'Draft'
+      && (this.isSuperAdmin || (this.canEdit && scheme.workflowStatus !== 'Published'));
   }
   get canShow(): boolean {
     return this.authService.hasAnyPermission(['scheme_show', 'scheme_access_list', 'scheme_access']);
@@ -360,7 +377,7 @@ export class LoyaltySchemesComponent implements OnInit {
   }
 
   deleteScheme(scheme: LoyaltyScheme): void {
-    if (!confirm(`Delete scheme "${scheme.schemeName}"?`)) return;
+    if (!confirm(`Soft delete scheme "${scheme.schemeName}" and its slab configuration? Invoice and redemption audit records will be retained.`)) return;
 
     this.loading = true;
     this.schemeService.delete(scheme.id).subscribe({
@@ -378,6 +395,11 @@ export class LoyaltySchemesComponent implements OnInit {
 
   submitScheme(scheme: LoyaltyScheme): void {
     this.runWorkflow(this.schemeService.submit(scheme.id));
+  }
+
+  sendToDraft(scheme: LoyaltyScheme): void {
+    if (!confirm(`Return scheme "${scheme.schemeName}" to Draft? Its approval dates and remarks will be reset.`)) return;
+    this.runWorkflow(this.schemeService.sendToDraft(scheme.id));
   }
 
   openWorkflowDialog(scheme: LoyaltyScheme): void {

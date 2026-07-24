@@ -98,6 +98,10 @@ export class AuthService {
     return permissions.some(permission => currentPermissions.includes(permission));
   }
 
+  isSuperAdminUser(): boolean {
+    return this.isSuperAdmin();
+  }
+
   private isSuperAdmin(): boolean {
     return this.getCurrentUser()?.user_type?.some(role =>
       role.toLowerCase() === 'superadmin'

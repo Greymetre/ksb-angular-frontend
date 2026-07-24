@@ -9,13 +9,6 @@
     </button>
   </div>
 
-  <div class="summary-grid">
-    <div class="summary-tile gold"><span>Total Requests</span><strong>{{ summary.totalRequests }}</strong></div>
-    <div class="summary-tile success"><span>Approved</span><strong>{{ summary.approved }}</strong></div>
-    <div class="summary-tile pending"><span>Pending</span><strong>{{ summary.pending }}</strong></div>
-    <div class="summary-tile danger"><span>Rejected / Hold</span><strong>{{ summary.rejectedOrHold }}</strong></div>
-  </div>
-
   <div class="filter-card" *ngIf="showFilters">
     <div class="filter-grid">
       <div class="filter-field">
@@ -34,6 +27,13 @@
         <button type="button" class="mini-btn light" (click)="filter = {}; loadRedemptions()">Clear</button>
       </div>
     </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-tile gold"><span>Total Requests</span><strong>{{ summary.totalRequests }}</strong></div>
+    <div class="summary-tile success"><span>Approved</span><strong>{{ summary.approved }}</strong></div>
+    <div class="summary-tile pending"><span>Pending</span><strong>{{ summary.pending }}</strong></div>
+    <div class="summary-tile danger"><span>Rejected / Hold</span><strong>{{ summary.rejectedOrHold }}</strong></div>
   </div>
 
   <div class="table-toolbar">
@@ -57,7 +57,7 @@
           <th>City</th>
           <th>Mobile</th>
           <th>Mode</th>
-          <th>Distributor</th>
+          <th>Dealer</th>
           <th>Wallet</th>
           <th>Scheme</th>
           <th>Points</th>

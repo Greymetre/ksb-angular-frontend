@@ -51,9 +51,9 @@ export class CustomersComponent implements OnInit {
   private readonly documentFileKeys = new Set(['documents', 'mou_file', 'gst_attachment', 'pan_attachment', 'aadhar_attachment', 'bank_proof']);
 
   readonly customerTypes: CustomerTypeOption[] = [
-    { id: 1, label: 'Distributor' },
+    { id: 1, label: 'Dealer' },
     { id: 2, label: 'Retailer' },
-    { id: 3, label: 'Influencers' }
+    { id: 3, label: 'Influencer' }
   ];
 
   readonly distributorStatuses = ['Active', 'Inactive', 'On Hold'];
@@ -69,9 +69,9 @@ export class CustomersComponent implements OnInit {
   ];
   readonly allCustomerTypeOptions: SelectOption[] = [
     { id: '', label: 'All Customer Types' },
-    { id: 1, label: 'Distributor' },
+    { id: 1, label: 'Dealer' },
     { id: 2, label: 'Retailer' },
-    { id: 3, label: 'Influencers' }
+    { id: 3, label: 'Influencer' }
   ];
   readonly registrationTypes = ['Proprietorship', 'Partnership', 'Pvt Ltd', 'LLP'];
   readonly customerSegments = ['AGRI', 'DOMESTIC'];

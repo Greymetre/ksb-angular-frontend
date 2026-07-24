@@ -9,8 +9,6 @@
     </button>
   </div>
 
-  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
-
   <div class="filter-card" *ngIf="showFilters">
     <div class="filter-grid">
       <div class="filter-field" *ngIf="!isHoliday">
@@ -89,6 +87,8 @@
       </div>
     </div>
   </div>
+
+  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
 
   <div class="table-toolbar">
     <label>Show <input type="number" [(ngModel)]="showEntries" (ngModelChange)="resetPage()" class="entries-input" min="5" max="100" /> entries</label>

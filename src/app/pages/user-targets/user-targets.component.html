@@ -13,8 +13,6 @@
     </button>
   </div>
 
-  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
-
   <div class="filter-panel" *ngIf="showFilters">
     <div class="filter-field">
       <label>Branch</label>
@@ -63,6 +61,8 @@
       <button type="button" class="mini-btn light" (click)="clearFilters()">Clear</button>
     </div>
   </div>
+
+  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
 
   <div class="table-toolbar">
     <div class="toolbar-left">

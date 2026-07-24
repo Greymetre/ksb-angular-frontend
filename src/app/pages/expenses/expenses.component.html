@@ -9,27 +9,6 @@
     </button>
   </div>
 
-  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
-
-  <div class="status-summary">
-    <div class="summary-card pending">
-      <span>Pending</span>
-      <strong>{{ pendingCount }}</strong>
-    </div>
-    <div class="summary-card approved">
-      <span>Approved</span>
-      <strong>{{ approvedCount }}</strong>
-    </div>
-    <div class="summary-card rejected">
-      <span>Rejected</span>
-      <strong>{{ rejectedCount }}</strong>
-    </div>
-    <div class="summary-card checked">
-      <span>Checked</span>
-      <strong>{{ checkedCount }}</strong>
-    </div>
-  </div>
-
   <div class="filter-panel" *ngIf="showFilters">
     <div class="filter-field">
       <label>Employee</label>
@@ -87,6 +66,27 @@
     </div>
     <div class="filter-actions">
       <button type="button" class="mini-btn light" (click)="clearFilters()">Clear</button>
+    </div>
+  </div>
+
+  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="status-summary">
+    <div class="summary-card pending">
+      <span>Pending</span>
+      <strong>{{ pendingCount }}</strong>
+    </div>
+    <div class="summary-card approved">
+      <span>Approved</span>
+      <strong>{{ approvedCount }}</strong>
+    </div>
+    <div class="summary-card rejected">
+      <span>Rejected</span>
+      <strong>{{ rejectedCount }}</strong>
+    </div>
+    <div class="summary-card checked">
+      <span>Checked</span>
+      <strong>{{ checkedCount }}</strong>
     </div>
   </div>
 

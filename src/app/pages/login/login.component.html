@@ -12,7 +12,7 @@
         <p class="login-subtitle">Please log in to your account</p>
       </div>
 
-      <div *ngIf="errorMessage" class="alert error-alert" role="alert">
+      <div *ngIf="errorMessage" class="alert error-alert" role="alert" aria-live="assertive">
         {{ errorMessage }}
       </div>
 

@@ -9,8 +9,6 @@
     </button>
   </div>
 
-  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
-
   <div class="filter-panel" *ngIf="showFilters">
     <div class="filter-field">
       <label>User</label>
@@ -34,9 +32,9 @@
       </select>
     </div>
     <div class="filter-field">
-      <label>Distributor</label>
+      <label>Dealer</label>
       <select [(ngModel)]="selectedDistributorId" (ngModelChange)="applyFilters()">
-        <option [ngValue]="null">Select Distributor</option>
+        <option [ngValue]="null">Select Dealer</option>
         <option *ngFor="let distributor of distributors" [ngValue]="distributor.id">{{ distributor.name | firstCaps }}</option>
       </select>
     </div>
@@ -67,6 +65,8 @@
       <button type="button" class="mini-btn light" (click)="clearFilters()">Clear</button>
     </div>
   </div>
+
+  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
 
   <div class="table-toolbar">
     <div class="toolbar-left">
@@ -193,8 +193,9 @@
         <div class="modal-field">
           <label>Customer Type <span class="req">*</span></label>
           <select [(ngModel)]="form.type" (ngModelChange)="onTypeChange()">
+            <option value="DEALER">DEALER</option>
             <option value="RETAILER">RETAILER</option>
-            <option value="DISTRIBUTER">DISTRIBUTER</option>
+            <option value="INFLUENCER">INFLUENCER</option>
           </select>
         </div>
         <div class="modal-field" *ngIf="showBuyer">
@@ -205,9 +206,9 @@
           </select>
         </div>
         <div class="modal-field">
-          <label>Dealer / Distributor <span class="req">*</span></label>
+          <label>Dealer <span class="req">*</span></label>
           <select [(ngModel)]="form.sellerId">
-            <option [ngValue]="null">Select Dealer / Distributor</option>
+            <option [ngValue]="null">Select Dealer</option>
             <option *ngFor="let distributor of distributors" [ngValue]="distributor.id">{{ distributor.name | firstCaps }}</option>
           </select>
         </div>

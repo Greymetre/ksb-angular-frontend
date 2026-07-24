@@ -153,6 +153,7 @@ export class LoyaltySchemeService {
   }
 
   submit(id: number): Observable<string> { return this.workflow(id, 'submit', {}); }
+  sendToDraft(id: number): Observable<string> { return this.workflow(id, 'draft', {}); }
   reject(id: number, remark: string): Observable<string> { return this.workflow(id, 'reject', { remark }); }
   publish(id: number): Observable<string> { return this.workflow(id, 'publish', {}); }
 

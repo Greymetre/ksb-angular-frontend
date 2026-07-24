@@ -11,8 +11,6 @@
     </button>
   </div>
 
-  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
-
   <div class="filter-card" *ngIf="showFilters">
     <div class="filter-grid">
       <div class="filter-field">
@@ -40,6 +38,8 @@
       </div>
     </div>
   </div>
+
+  <div class="alert error-alert" *ngIf="errorMessage">{{ errorMessage }}</div>
 
   <div class="table-toolbar">
     <div class="toolbar-left">
@@ -173,10 +173,10 @@
           </div>
         </div>
 
-        <div class="section-title">Basic Distributor Information</div>
+        <div class="section-title">Basic Dealer Information</div>
         <div class="form-grid">
           <div class="modal-field">
-            <label>Distributor Legal Name <span class="req">*</span></label>
+            <label>Dealer Legal Name <span class="req">*</span></label>
             <input type="text" [ngModel]="field('legal_name')" (ngModelChange)="setField('legal_name', $event)" maxlength="200"/>
           </div>
           <div class="modal-field">
@@ -184,7 +184,7 @@
             <input type="text" [ngModel]="field('trade_name')" (ngModelChange)="setField('trade_name', $event)" maxlength="200"/>
           </div>
           <div class="modal-field">
-            <label>Distributor Code <span class="req">*</span></label>
+            <label>Dealer Code <span class="req">*</span></label>
             <input type="text" [(ngModel)]="form.customerCode" (ngModelChange)="setField('distributor_code', $event)" maxlength="200"/>
           </div>
           <div class="modal-field">
@@ -285,12 +285,12 @@
             <input type="text" [ngModel]="field('owner_name')" (ngModelChange)="setField('owner_name', $event)" maxlength="200"/>
           </div>
           <div class="modal-field">
-            <label>Distributor Name <span class="req">*</span></label>
-            <app-searchable-select [options]="distributorOptions" [selected]="numField('distributor_name')" placeholder="Select Domestic Distributor" (selectedChange)="setField('distributor_name', $event)"></app-searchable-select>
+            <label>Dealer Name <span class="req">*</span></label>
+            <app-searchable-select [options]="distributorOptions" [selected]="numField('distributor_name')" placeholder="Select Domestic Dealer" (selectedChange)="setField('distributor_name', $event)"></app-searchable-select>
           </div>
           <div class="modal-field">
-            <label>Agri Distributor <span class="req">*</span></label>
-            <app-searchable-select [options]="distributorOptions" [selected]="numField('agri_distributor')" placeholder="Select Agri Distributor" (selectedChange)="setField('agri_distributor', $event)"></app-searchable-select>
+            <label>Agri Dealer <span class="req">*</span></label>
+            <app-searchable-select [options]="distributorOptions" [selected]="numField('agri_distributor')" placeholder="Select Agri Dealer" (selectedChange)="setField('agri_distributor', $event)"></app-searchable-select>
           </div>
           <div class="modal-field">
             <label>Select Employee <span class="req">*</span></label>

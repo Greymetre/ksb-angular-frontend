@@ -170,27 +170,6 @@
       </button>
     </div>
 
-    <div class="summary-grid">
-      <button type="button" class="summary-tile summary-action"
-        [class.active]="filter.approval_status === null || filter.approval_status === undefined"
-        (click)="filterByApprovalStatus(null)">
-        <span>Total Invoices</span>
-        <strong>{{ summary.totalInvoices }}</strong>
-      </button>
-      <div class="summary-tile">
-        <span>Total Retailers</span>
-        <strong>{{ summary.totalRetailers }}</strong>
-      </div>
-      <div class="summary-tile">
-        <span>Total Amount</span>
-        <strong>{{ formatMoney(summary.totalAmount) }}</strong>
-      </div>
-      <div class="summary-tile">
-        <span>Total Points</span>
-        <strong>{{ summary.totalPoints | number:'1.2-2' }}</strong>
-      </div>
-    </div>
-
     <div class="filter-card" *ngIf="showFilters">
       <div class="filter-grid">
         <div class="filter-field">
@@ -225,6 +204,27 @@
         <div class="filter-actions">
           <button type="button" class="mini-btn light" (click)="resetFilters()">Clear</button>
         </div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <button type="button" class="summary-tile summary-action"
+        [class.active]="filter.approval_status === null || filter.approval_status === undefined"
+        (click)="filterByApprovalStatus(null)">
+        <span>Total Invoices</span>
+        <strong>{{ summary.totalInvoices }}</strong>
+      </button>
+      <div class="summary-tile">
+        <span>Total Retailers</span>
+        <strong>{{ summary.totalRetailers }}</strong>
+      </div>
+      <div class="summary-tile">
+        <span>Total Amount</span>
+        <strong>{{ formatMoney(summary.totalAmount) }}</strong>
+      </div>
+      <div class="summary-tile">
+        <span>Total Points</span>
+        <strong>{{ summary.totalPoints | number:'1.2-2' }}</strong>
       </div>
     </div>
 
