@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, timeout } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
-import { NewInvoiceFilter, NewInvoiceItem, NewInvoicePayload, NewInvoiceService, NewInvoiceSummary, RetailerOption } from '../../services/new-invoice.service';
+import { InvoiceSchemeOption, NewInvoiceFilter, NewInvoiceItem, NewInvoicePayload, NewInvoiceService, NewInvoiceSummary, RetailerOption } from '../../services/new-invoice.service';
 import { API_ORIGIN } from '../../config/api.config';
 import { isPdfOrImageFile } from '../../shared/utils/file-validation';
 import { formatKolkataDate, formatKolkataLongDateTime, kolkataDateInput, kolkataTodayInput } from '../../shared/utils/date-time';
@@ -21,6 +21,7 @@ interface ToastModel {
 interface InvoiceFormModel {
   id: number | null;
   secondaryCustomerId: number | null;
+  schemeId: number | null;
   invoiceNumber: string;
   invoiceDate: string;
   amount: number | null;
@@ -46,6 +47,9 @@ export class NewInvoicesComponent implements OnInit {
   invoices: NewInvoiceItem[] = [];
   retailers: RetailerOption[] = [];
   retailerOptions: SelectOption[] = [];
+  schemeOptions: InvoiceSchemeOption[] = [];
+  schemeSelectOptions: SelectOption[] = [];
+  schemeFilterOptions: SelectOption[] = [];
   filter: NewInvoiceFilter = {};
   summary: NewInvoiceSummary = this.emptySummary();
   form: InvoiceFormModel = this.emptyForm();
@@ -86,6 +90,7 @@ export class NewInvoicesComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadRetailers();
+    this.loadSchemeFilters();
     this.route.paramMap.subscribe(params => {
       const id = Number(params.get('id') || 0);
       if (id > 0) this.loadInvoice(id);
@@ -94,6 +99,23 @@ export class NewInvoicesComponent implements OnInit {
         this.loadInvoices();
       }
     });
+  }
+
+  loadSchemeFilters(): void {
+    this.newInvoiceService.filterSchemes().subscribe({
+      next: schemes => {
+        this.schemeFilterOptions = schemes.map(scheme => ({ id: scheme.id, label: `${scheme.name} (${scheme.code})` }));
+        this.refreshView();
+      },
+      error: error => this.showToast(error.message, 'error')
+    });
+  }
+
+  onSchemeFilterChange(value: number | string | null): void {
+    const id = Number(value || 0);
+    this.filter.scheme_id = id > 0 ? id : null;
+    this.currentPage = 1;
+    this.loadInvoices();
   }
 
   get filteredInvoices(): NewInvoiceItem[] {
@@ -235,6 +257,7 @@ export class NewInvoicesComponent implements OnInit {
     this.form = {
       id: invoice.id,
       secondaryCustomerId: invoice.secondaryCustomerId,
+      schemeId: invoice.schemeId || null,
       invoiceNumber: invoice.invoiceNumber,
       invoiceDate: this.toDateInput(invoice.invoiceDate),
       amount: invoice.amount,
@@ -250,6 +273,7 @@ export class NewInvoicesComponent implements OnInit {
       cityName: invoice.cityName
     };
     this.showModal = true;
+    this.loadSchemeOptions(false);
     this.refreshView();
   }
 
@@ -263,7 +287,43 @@ export class NewInvoicesComponent implements OnInit {
     const retailerId = Number(id || 0);
     this.form.secondaryCustomerId = retailerId > 0 ? retailerId : null;
     this.selectedRetailer = this.retailers.find(retailer => retailer.id === retailerId) || null;
+    this.form.schemeId = null;
+    this.loadSchemeOptions(true);
     this.refreshView();
+  }
+
+  onInvoiceDateChange(): void {
+    this.form.schemeId = null;
+    this.loadSchemeOptions(true);
+  }
+
+  onSchemeChange(id: number | string | null): void {
+    const schemeId = Number(id || 0);
+    this.form.schemeId = schemeId > 0 ? schemeId : null;
+    this.refreshView();
+  }
+
+  loadSchemeOptions(clearSelection: boolean): void {
+    if (!this.form.secondaryCustomerId || !this.form.invoiceDate) {
+      this.schemeOptions = [];
+      this.schemeSelectOptions = [];
+      if (clearSelection) this.form.schemeId = null;
+      return;
+    }
+    const selected = this.form.schemeId;
+    this.newInvoiceService.schemes(this.form.secondaryCustomerId, this.form.invoiceDate).subscribe({
+      next: schemes => {
+        this.schemeOptions = schemes;
+        this.schemeSelectOptions = schemes.map(scheme => ({
+          id: scheme.id,
+          label: `${scheme.name} (${scheme.code})`
+        }));
+        if (!clearSelection && selected && schemes.some(scheme => scheme.id === selected)) this.form.schemeId = selected;
+        else if (clearSelection) this.form.schemeId = null;
+        this.refreshView();
+      },
+      error: error => this.showToast(error.message, 'error')
+    });
   }
 
   submit(): void {
@@ -472,6 +532,10 @@ export class NewInvoicesComponent implements OnInit {
       this.showToast('Invoice number is required.', 'error');
       return null;
     }
+    if (!this.form.schemeId) {
+      this.showToast('Scheme selection is required.', 'error');
+      return null;
+    }
     if (!this.form.invoiceDate) {
       this.showToast('Invoice date is required.', 'error');
       return null;
@@ -480,8 +544,13 @@ export class NewInvoicesComponent implements OnInit {
       this.showToast('Amount must be greater than 0.', 'error');
       return null;
     }
+    if (!this.form.attachment && !this.selectedAttachmentFile) {
+      this.showToast('Invoice attachment is required.', 'error');
+      return null;
+    }
     return {
       secondary_customer_id: this.form.secondaryCustomerId,
+      scheme_id: this.form.schemeId,
       invoice_number: this.form.invoiceNumber.trim(),
       invoice_date: this.form.invoiceDate,
       amount: Number(this.form.amount),
@@ -498,6 +567,7 @@ export class NewInvoicesComponent implements OnInit {
     return {
       id: null,
       secondaryCustomerId: null,
+      schemeId: null,
       invoiceNumber: '',
       invoiceDate: kolkataTodayInput(),
       amount: null,

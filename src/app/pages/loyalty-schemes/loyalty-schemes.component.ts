@@ -9,6 +9,7 @@ import {
   LoyaltySchemeService
 } from '../../services/loyalty-scheme.service';
 import { formatKolkataDate } from '../../shared/utils/date-time';
+import { API_ORIGIN } from '../../config/api.config';
 
 interface SchemeFormModel {
   id: number | null;
@@ -24,7 +25,8 @@ interface SchemeFormModel {
   endDate: string;
   schemeType: string;
   basedOn: string;
-  status: string;
+  brochure: File | null;
+  brochurePath: string;
   slabs: Array<{
     tierName: string;
     valueFrom: number | null;
@@ -37,6 +39,12 @@ interface ToastModel {
   visible: boolean;
   message: string;
   type: 'success' | 'error';
+}
+
+interface WorkflowDialog {
+  visible: boolean;
+  scheme: LoyaltyScheme | null;
+  remark: string;
 }
 
 @Component({
@@ -52,7 +60,7 @@ export class LoyaltySchemesComponent implements OnInit {
   schemeTags = ['Regular', 'Booster'];
   areaScopes = ['All', 'Branch', 'Zone', 'State', 'Customer'];
   basedOnOptions = ['Value', 'Percentage'];
-  statuses = ['Draft', 'Live', 'Ended'];
+  statuses = ['Draft', 'Pending Approval', 'Approved', 'Rejected', 'Live', 'Expired'];
 
   showEntries = 10;
   currentPage = 1;
@@ -64,8 +72,12 @@ export class LoyaltySchemesComponent implements OnInit {
   generatingCode = false;
   showFilters = false;
   showModal = false;
+  viewOnly = false;
+  viewedScheme: LoyaltyScheme | null = null;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
+  workflowDialog: WorkflowDialog = { visible: false, scheme: null, remark: '' };
+  areaSearch = '';
   form: SchemeFormModel = this.emptyForm();
   private toastTimeoutId?: number;
   private codeGenerateTimeoutId?: number;
@@ -104,13 +116,16 @@ export class LoyaltySchemesComponent implements OnInit {
   }
 
   get areaOptions(): LoyaltySchemeOption[] {
+    let options: LoyaltySchemeOption[];
     switch (this.form.areaScope) {
-      case 'Branch': return this.options.branches;
-      case 'Zone': return this.options.zones;
-      case 'State': return this.options.states;
-      case 'Customer': return this.options.customers;
+      case 'Branch': options = this.options.branches; break;
+      case 'Zone': options = this.options.zones; break;
+      case 'State': options = this.options.states; break;
+      case 'Customer': options = this.options.customers; break;
       default: return [];
     }
+    const query = this.areaSearch.trim().toLowerCase();
+    return query ? options.filter(option => option.name.toLowerCase().includes(query)) : options;
   }
 
   get canCreate(): boolean {
@@ -124,6 +139,16 @@ export class LoyaltySchemesComponent implements OnInit {
   get canDelete(): boolean {
     return this.authService.hasPermission('scheme_delete');
   }
+  get canShow(): boolean {
+    return this.authService.hasAnyPermission(['scheme_show', 'scheme_access_list', 'scheme_access']);
+  }
+
+  get canApprove(): boolean {
+    return this.authService.hasPermission('scheme_approve');
+  }
+  get canSubmit(): boolean { return this.authService.hasPermission('scheme_submit'); }
+  get canReject(): boolean { return this.authService.hasPermission('scheme_reject') || this.canApprove; }
+  get canPublish(): boolean { return this.authService.hasPermission('scheme_publish'); }
 
   loadSchemes(): void {
     this.loading = true;
@@ -186,6 +211,8 @@ export class LoyaltySchemesComponent implements OnInit {
   }
 
   openCreate(): void {
+    this.viewOnly = false;
+    this.viewedScheme = null;
     this.form = this.emptyForm();
     this.errorMessage = '';
     this.showModal = true;
@@ -194,6 +221,8 @@ export class LoyaltySchemesComponent implements OnInit {
   }
 
   openEdit(scheme: LoyaltyScheme): void {
+    this.viewOnly = false;
+    this.viewedScheme = null;
     this.form = {
       id: scheme.id,
       active: scheme.active || 'Y',
@@ -208,7 +237,8 @@ export class LoyaltySchemesComponent implements OnInit {
       endDate: this.toDateInput(scheme.endDate),
       schemeType: 'Invoice',
       basedOn: scheme.basedOn || 'Value',
-      status: scheme.status || 'Draft',
+      brochure: null,
+      brochurePath: scheme.brochurePath || '',
       slabs: scheme.slabs.length ? scheme.slabs.map(slab => ({
         tierName: slab.tierName,
         valueFrom: slab.valueFrom,
@@ -221,6 +251,13 @@ export class LoyaltySchemesComponent implements OnInit {
     this.refreshView();
   }
 
+  openView(scheme: LoyaltyScheme): void {
+    this.openEdit(scheme);
+    this.viewOnly = true;
+    this.viewedScheme = scheme;
+    this.refreshView();
+  }
+
   closeModal(): void {
     if (this.saving) return;
     this.showModal = false;
@@ -229,15 +266,36 @@ export class LoyaltySchemesComponent implements OnInit {
 
   changeAreaScope(): void {
     this.form.areaValues = [];
+    this.areaSearch = '';
   }
 
   addSlab(): void {
-    this.form.slabs.push(this.emptySlab());
+    const previous = this.form.slabs[this.form.slabs.length - 1];
+    const next = this.emptySlab();
+    if (previous?.valueTo !== null && previous?.valueTo !== undefined) {
+      next.valueFrom = Number(previous.valueTo) + 1;
+    }
+    this.form.slabs.push(next);
   }
 
   removeSlab(index: number): void {
     if (this.form.slabs.length === 1) return;
     this.form.slabs.splice(index, 1);
+    this.syncFollowingSlab(index - 1);
+  }
+
+  onValueToChange(index: number): void {
+    this.syncFollowingSlab(index);
+  }
+
+  isAreaSelected(value: string): boolean {
+    return this.form.areaValues.includes(value);
+  }
+
+  toggleAreaValue(value: string, checked: boolean): void {
+    this.form.areaValues = checked
+      ? Array.from(new Set([...this.form.areaValues, value]))
+      : this.form.areaValues.filter(item => item !== value);
   }
 
   scheduleGenerateCode(): void {
@@ -267,8 +325,7 @@ export class LoyaltySchemesComponent implements OnInit {
     });
   }
 
-  submit(status?: string): void {
-    if (status) this.form.status = status;
+  submit(): void {
     const payload = this.buildPayload();
     const validation = this.validatePayload(payload);
     if (validation) {
@@ -285,10 +342,18 @@ export class LoyaltySchemesComponent implements OnInit {
       this.saving = false;
       this.refreshView();
     })).subscribe({
-      next: message => {
+      next: result => {
         this.showModal = false;
-        this.showToast(message, 'success');
-        this.loadSchemes();
+        const id = this.form.id ?? result.scheme.id;
+        if (this.form.brochure && id) {
+          this.schemeService.uploadBrochure(id, this.form.brochure).subscribe({
+            next: uploadMessage => { this.showToast(`${result.message}. ${uploadMessage}`, 'success'); this.loadSchemes(); },
+            error: error => { this.showToast(`${result.message}, but brochure upload failed: ${error.message}`, 'error'); this.loadSchemes(); }
+          });
+        } else {
+          this.showToast(result.message, 'success');
+          this.loadSchemes();
+        }
       },
       error: error => this.showToast(error.message, 'error')
     });
@@ -311,8 +376,51 @@ export class LoyaltySchemesComponent implements OnInit {
     });
   }
 
+  submitScheme(scheme: LoyaltyScheme): void {
+    this.runWorkflow(this.schemeService.submit(scheme.id));
+  }
+
+  openWorkflowDialog(scheme: LoyaltyScheme): void {
+    this.workflowDialog = { visible: true, scheme, remark: '' };
+  }
+
+  closeWorkflowDialog(): void {
+    if (!this.saving) this.workflowDialog = { visible: false, scheme: null, remark: '' };
+  }
+
+  decideScheme(action: 'approve' | 'reject'): void {
+    const scheme = this.workflowDialog.scheme;
+    if (!scheme) return;
+    if (action === 'reject' && !this.workflowDialog.remark.trim()) {
+      this.showToast('Rejection remark is required.', 'error'); return;
+    }
+    const request = action === 'approve'
+      ? this.schemeService.approve(scheme.id, this.workflowDialog.remark)
+      : this.schemeService.reject(scheme.id, this.workflowDialog.remark);
+    this.runWorkflow(request, true);
+  }
+
+  publishScheme(scheme: LoyaltyScheme): void {
+    this.runWorkflow(this.schemeService.publish(scheme.id));
+  }
+
+  onBrochureSelected(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
+    if (file && (file.type !== 'application/pdf' || file.size > 10 * 1024 * 1024)) {
+      this.showToast('Select a PDF brochure up to 10 MB.', 'error');
+      (event.target as HTMLInputElement).value = '';
+      this.form.brochure = null;
+      return;
+    }
+    this.form.brochure = file;
+  }
+
   formatDate(value?: string | null): string {
     return formatKolkataDate(value, '');
+  }
+
+  brochureUrl(path?: string | null): string {
+    return path ? `${API_ORIGIN}${path.startsWith('/') ? '' : '/'}${path}` : '';
   }
 
   rewardLabel(): string {
@@ -333,7 +441,6 @@ export class LoyaltySchemesComponent implements OnInit {
       end_date: this.form.endDate,
       scheme_type: 'Invoice',
       based_on: this.form.basedOn,
-      status: this.form.status,
       slabs: this.form.slabs.map(slab => ({
         tier_name: slab.tierName.trim(),
         value_from: Number(slab.valueFrom ?? 0),
@@ -350,6 +457,13 @@ export class LoyaltySchemesComponent implements OnInit {
     if (payload.area_scope !== 'All' && payload.area_values.length === 0) return 'Select at least one area value.';
     if (payload.slabs.some(slab => !slab.tier_name || slab.value_from < 0 || slab.reward_value < 0)) return 'Complete all slab rows.';
     if (payload.slabs.some(slab => slab.value_to !== null && slab.value_to < slab.value_from)) return 'Slab value to must be greater than value from.';
+    for (let index = 1; index < payload.slabs.length; index++) {
+      const previousTo = payload.slabs[index - 1].value_to;
+      if (previousTo === null) return 'A slab with no upper limit must be the final slab.';
+      if (payload.slabs[index].value_from !== previousTo + 1) return `Slab ${index + 1} must start at ${previousTo + 1} to avoid overlaps or gaps.`;
+    }
+    if (payload.based_on === 'Percentage' && payload.slabs.some(slab => slab.reward_value > 100)) return 'Reward percentage cannot be greater than 100%.';
+    if (payload.based_on === 'Value' && payload.slabs.some(slab => slab.reward_value > 10000000)) return 'Reward amount cannot be greater than 1,00,00,000.';
     return '';
   }
 
@@ -368,13 +482,34 @@ export class LoyaltySchemesComponent implements OnInit {
       endDate: '',
       schemeType: 'Invoice',
       basedOn: 'Value',
-      status: 'Draft',
+      brochure: null,
+      brochurePath: '',
       slabs: [this.emptySlab()]
     };
   }
 
   private emptySlab() {
     return { tierName: '', valueFrom: 0, valueTo: null, rewardValue: 0 };
+  }
+
+  private syncFollowingSlab(index: number): void {
+    if (index < 0 || index >= this.form.slabs.length - 1) return;
+    const valueTo = this.form.slabs[index].valueTo;
+    if (valueTo !== null && valueTo !== undefined) {
+      this.form.slabs[index + 1].valueFrom = Number(valueTo) + 1;
+    }
+  }
+
+  private runWorkflow(request: import('rxjs').Observable<string>, closeDialog = false): void {
+    this.saving = true;
+    request.pipe(finalize(() => { this.saving = false; this.refreshView(); })).subscribe({
+      next: message => {
+        if (closeDialog) this.workflowDialog = { visible: false, scheme: null, remark: '' };
+        this.showToast(message, 'success');
+        this.loadSchemes();
+      },
+      error: error => this.showToast(error.message, 'error')
+    });
   }
 
   private localFallbackCode(): string {

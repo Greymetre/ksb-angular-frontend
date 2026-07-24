@@ -230,6 +230,15 @@
             placeholder="All Status" (selectedChange)="onStatusFilterChange($event)"></app-searchable-select>
         </div>
         <div class="filter-field">
+          <label>Scheme Name</label>
+          <app-searchable-select
+            [options]="schemeFilterOptions"
+            [selected]="filter.scheme_id ?? null"
+            placeholder="All Schemes"
+            (selectedChange)="onSchemeFilterChange($event)">
+          </app-searchable-select>
+        </div>
+        <div class="filter-field">
           <label>From Date</label>
           <input type="date" [(ngModel)]="filter.from_date" (ngModelChange)="resetPage(); loadInvoices()" />
         </div>
@@ -410,14 +419,25 @@
         </div>
         <div class="modal-field">
           <label>Invoice Date <span class="req">*</span></label>
-          <input type="date" [(ngModel)]="form.invoiceDate" />
+          <input type="date" [(ngModel)]="form.invoiceDate" (ngModelChange)="onInvoiceDateChange()" />
+        </div>
+        <div class="modal-field">
+          <label>Scheme <span class="req">*</span></label>
+          <app-searchable-select
+            [options]="schemeSelectOptions"
+            [selected]="form.schemeId"
+            [disabled]="!form.secondaryCustomerId || !form.invoiceDate"
+            placeholder="Select Scheme"
+            (selectedChange)="onSchemeChange($event)">
+          </app-searchable-select>
+          <small *ngIf="form.secondaryCustomerId && form.invoiceDate && schemeOptions.length === 0">No active scheme is available for this invoice date.</small>
         </div>
         <div class="modal-field">
           <label>Pre-GST Amount <span class="req">*</span></label>
           <input type="number" [(ngModel)]="form.amount" min="0.01" step="0.01" />
         </div>
         <div class="modal-field">
-          <label>Attachment</label>
+          <label>Attachment <span class="req">*</span></label>
           <input type="file" accept="image/*,.pdf,application/pdf" (change)="onAttachmentChange($event)" />
           <small>{{ attachmentLabel() }}</small>
         </div>

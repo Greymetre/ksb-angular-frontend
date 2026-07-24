@@ -30,6 +30,13 @@ export interface LoyaltyScheme {
   schemeType: string;
   basedOn: string;
   status: string;
+  workflowStatus: string;
+  brochurePath?: string | null;
+  submittedAt?: string | null;
+  approvedAt?: string | null;
+  approvalRemark?: string | null;
+  rejectedAt?: string | null;
+  rejectionRemark?: string | null;
   createdByName?: string | null;
   createdAt?: string | null;
   slabs: LoyaltySchemeSlab[];
@@ -48,7 +55,6 @@ export interface LoyaltySchemePayload {
   end_date: string;
   scheme_type: string;
   based_on: string;
-  status: string;
   slabs: Array<{
     tier_name: string;
     value_from: number;
@@ -118,16 +124,16 @@ export class LoyaltySchemeService {
     );
   }
 
-  create(payload: LoyaltySchemePayload): Observable<string> {
+  create(payload: LoyaltySchemePayload): Observable<{ message: string; scheme: LoyaltyScheme }> {
     return this.http.post<ApiResponse>(this.baseUrl, payload, { headers: this.jsonHeaders() }).pipe(
-      map(response => this.responseMessage(response) || 'Scheme created successfully'),
+      map(response => ({ message: this.responseMessage(response) || 'Scheme created successfully', scheme: this.normalizeScheme(this.pickFirstValue(response, ['scheme', 'data.scheme']) ?? {}) })),
       catchError(error => this.handleError(error))
     );
   }
 
-  update(id: number, payload: LoyaltySchemePayload): Observable<string> {
+  update(id: number, payload: LoyaltySchemePayload): Observable<{ message: string; scheme: LoyaltyScheme }> {
     return this.http.put<ApiResponse>(`${this.baseUrl}/${id}`, payload, { headers: this.jsonHeaders() }).pipe(
-      map(response => this.responseMessage(response) || 'Scheme updated successfully'),
+      map(response => ({ message: this.responseMessage(response) || 'Scheme updated successfully', scheme: this.normalizeScheme(this.pickFirstValue(response, ['scheme', 'data.scheme']) ?? {}) })),
       catchError(error => this.handleError(error))
     );
   }
@@ -135,6 +141,33 @@ export class LoyaltySchemeService {
   delete(id: number): Observable<string> {
     return this.http.delete<ApiResponse>(`${this.baseUrl}/${id}`, { headers: this.authHeaders() }).pipe(
       map(response => this.responseMessage(response) || 'Scheme deleted successfully'),
+      catchError(error => this.handleError(error))
+    );
+  }
+
+  approve(id: number, remark = ''): Observable<string> {
+    return this.http.post<ApiResponse>(`${this.baseUrl}/${id}/approve`, { remark }, { headers: this.jsonHeaders() }).pipe(
+      map(response => this.responseMessage(response) || 'Scheme approved successfully'),
+      catchError(error => this.handleError(error))
+    );
+  }
+
+  submit(id: number): Observable<string> { return this.workflow(id, 'submit', {}); }
+  reject(id: number, remark: string): Observable<string> { return this.workflow(id, 'reject', { remark }); }
+  publish(id: number): Observable<string> { return this.workflow(id, 'publish', {}); }
+
+  uploadBrochure(id: number, file: File): Observable<string> {
+    const data = new FormData();
+    data.append('brochure', file);
+    return this.http.post<ApiResponse>(`${this.baseUrl}/${id}/brochure`, data, { headers: this.authHeaders() }).pipe(
+      map(response => this.responseMessage(response) || 'Scheme brochure uploaded successfully'),
+      catchError(error => this.handleError(error))
+    );
+  }
+
+  private workflow(id: number, action: string, body: Record<string, unknown>): Observable<string> {
+    return this.http.post<ApiResponse>(`${this.baseUrl}/${id}/${action}`, body, { headers: this.jsonHeaders() }).pipe(
+      map(response => this.responseMessage(response) || `Scheme ${action} completed`),
       catchError(error => this.handleError(error))
     );
   }
@@ -174,6 +207,13 @@ export class LoyaltySchemeService {
       schemeType: this.readString(row['scheme_type'] ?? row['schemeType']) || 'Invoice',
       basedOn: this.readString(row['based_on'] ?? row['basedOn']) || 'Value',
       status: this.readString(row['status']) || 'Draft',
+      workflowStatus: this.readString(row['workflow_status'] ?? row['workflowStatus'] ?? row['status']) || 'Draft',
+      brochurePath: this.readNullableString(row['brochure_path'] ?? row['brochurePath']),
+      submittedAt: this.readNullableString(row['submitted_at'] ?? row['submittedAt']),
+      approvedAt: this.readNullableString(row['approved_at'] ?? row['approvedAt']),
+      approvalRemark: this.readNullableString(row['approval_remark'] ?? row['approvalRemark']),
+      rejectedAt: this.readNullableString(row['rejected_at'] ?? row['rejectedAt']),
+      rejectionRemark: this.readNullableString(row['rejection_remark'] ?? row['rejectionRemark']),
       createdByName: this.readNullableString(row['created_by_name'] ?? row['createdByName']),
       createdAt: this.readNullableString(row['created_at'] ?? row['createdAt']),
       slabs: this.pickArray(row, ['slabs']).map(slab => this.normalizeSlab(slab))

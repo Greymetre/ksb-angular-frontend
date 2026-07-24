@@ -61,6 +61,7 @@ export interface NewInvoiceApprovalLog {
 
 export interface NewInvoicePayload {
   secondary_customer_id: number;
+  scheme_id: number;
   invoice_number: string;
   invoice_date: string;
   amount: number;
@@ -68,7 +69,16 @@ export interface NewInvoicePayload {
   attachment?: string | null;
 }
 
+export interface InvoiceSchemeOption {
+  id: number;
+  name: string;
+  code: string;
+  startDate: string;
+  endDate: string;
+}
+
 export interface NewInvoiceFilter {
+  scheme_id?: number | null;
   retailer_search?: string;
   invoice_number?: string;
   approval_status?: number | null;
@@ -130,6 +140,39 @@ export class NewInvoiceService {
     const params = search ? new HttpParams().set('search', search) : new HttpParams();
     return this.http.get<ApiResponse>(`${this.baseUrl}/retailers`, { headers: this.authHeaders(), params }).pipe(
       map(response => this.pickArray(response, ['retailers', 'data.retailers', 'data']).map(row => this.normalizeRetailer(row))),
+      catchError(error => this.handleError(error))
+    );
+  }
+
+  schemes(customerId: number, invoiceDate: string): Observable<InvoiceSchemeOption[]> {
+    const params = new HttpParams().set('customer_id', customerId).set('invoice_date', invoiceDate);
+    return this.http.get<ApiResponse>(`${this.baseUrl}/schemes`, { headers: this.authHeaders(), params }).pipe(
+      map(response => this.pickArray(response, ['schemes', 'data.schemes', 'data']).map(value => {
+        const row = this.asRecord(value);
+        return {
+          id: this.readNumber(row['id']),
+          name: this.readString(row['name']),
+          code: this.readString(row['code']),
+          startDate: this.readString(row['start_date'] ?? row['startDate']),
+          endDate: this.readString(row['end_date'] ?? row['endDate'])
+        };
+      })),
+      catchError(error => this.handleError(error))
+    );
+  }
+
+  filterSchemes(): Observable<InvoiceSchemeOption[]> {
+    return this.http.get<ApiResponse>(`${this.baseUrl}/filter-schemes`, { headers: this.authHeaders() }).pipe(
+      map(response => this.pickArray(response, ['schemes', 'data.schemes', 'data']).map(value => {
+        const row = this.asRecord(value);
+        return {
+          id: this.readNumber(row['id']),
+          name: this.readString(row['name']),
+          code: this.readString(row['code']),
+          startDate: this.readString(row['start_date'] ?? row['startDate']),
+          endDate: this.readString(row['end_date'] ?? row['endDate'])
+        };
+      })),
       catchError(error => this.handleError(error))
     );
   }
@@ -200,6 +243,7 @@ export class NewInvoiceService {
   private toFormData(payload: NewInvoicePayload, file?: File | null): FormData {
     const form = new FormData();
     this.append(form, 'secondary_customer_id', payload.secondary_customer_id);
+    this.append(form, 'scheme_id', payload.scheme_id);
     this.append(form, 'invoice_number', payload.invoice_number);
     this.append(form, 'invoice_date', payload.invoice_date);
     this.append(form, 'amount', payload.amount);
