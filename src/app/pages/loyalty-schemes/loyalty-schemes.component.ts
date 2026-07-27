@@ -449,6 +449,22 @@ export class LoyaltySchemesComponent implements OnInit {
     return this.form.basedOn === 'Percentage' ? 'Reward %' : 'Reward Amount';
   }
 
+  onRewardValueChange(slab: SchemeFormModel['slabs'][number], value: number | string | null): void {
+    if (value === null || value === '') {
+      slab.rewardValue = null;
+      return;
+    }
+
+    if (this.form.basedOn === 'Percentage') {
+      const digits = String(value).replace(/\D/g, '').slice(0, 2);
+      slab.rewardValue = digits ? Number(digits) : null;
+      return;
+    }
+
+    const amount = Number(value);
+    slab.rewardValue = Number.isFinite(amount) ? amount : null;
+  }
+
   private buildPayload(): LoyaltySchemePayload {
     return {
       active: this.form.active,
@@ -484,7 +500,7 @@ export class LoyaltySchemesComponent implements OnInit {
       if (previousTo === null) return 'A slab with no upper limit must be the final slab.';
       if (payload.slabs[index].value_from !== previousTo + 1) return `Slab ${index + 1} must start at ${previousTo + 1} to avoid overlaps or gaps.`;
     }
-    if (payload.based_on === 'Percentage' && payload.slabs.some(slab => slab.reward_value > 100)) return 'Reward percentage cannot be greater than 100%.';
+    if (payload.based_on === 'Percentage' && payload.slabs.some(slab => slab.reward_value > 99)) return 'Reward percentage can contain a maximum of two digits.';
     if (payload.based_on === 'Value' && payload.slabs.some(slab => slab.reward_value > 10000000)) return 'Reward amount cannot be greater than 1,00,00,000.';
     return '';
   }

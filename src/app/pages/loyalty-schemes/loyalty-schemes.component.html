@@ -217,7 +217,12 @@
             <input type="text" [(ngModel)]="slab.tierName" placeholder="Silver"/>
             <input type="number" [(ngModel)]="slab.valueFrom" min="0"/>
             <input type="number" [(ngModel)]="slab.valueTo" (ngModelChange)="onValueToChange(index)" min="0" placeholder="No limit"/>
-            <input type="number" [(ngModel)]="slab.rewardValue" min="0" [max]="form.basedOn === 'Percentage' ? 100 : 10000000" step="0.01"/>
+            <input class="reward-input" [type]="form.basedOn === 'Percentage' ? 'text' : 'number'"
+              [attr.inputmode]="form.basedOn === 'Percentage' ? 'numeric' : 'decimal'"
+              [attr.maxlength]="form.basedOn === 'Percentage' ? 2 : null"
+              [ngModel]="slab.rewardValue"
+              (ngModelChange)="onRewardValueChange(slab, $event)"
+              min="0" [max]="form.basedOn === 'Percentage' ? 99 : 10000000" step="0.01"/>
             <button type="button" class="btn-danger" title="Remove" (click)="removeSlab(index)" [disabled]="form.slabs.length === 1"><span class="material-icons">close</span></button>
           </div>
         </div>

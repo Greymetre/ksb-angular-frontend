@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, timeout } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
@@ -64,6 +65,10 @@ export class NewInvoicesComponent implements OnInit {
   exporting = false;
   showFilters = false;
   showModal = false;
+  approvalHistoryVisible = false;
+  attachmentZoom = 1;
+  attachmentFullscreen = false;
+  attachmentViewerResourceUrl: SafeResourceUrl | null = null;
   errorMessage = '';
   toast: ToastModel = { visible: false, message: '', type: 'success' };
   private readonly backendOrigin = this.resolveBackendOrigin();
@@ -85,6 +90,7 @@ export class NewInvoicesComponent implements OnInit {
     private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
+    private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -220,6 +226,11 @@ export class NewInvoicesComponent implements OnInit {
     ).subscribe({
       next: invoice => {
         this.selectedInvoice = invoice;
+        this.attachmentZoom = 1;
+        this.attachmentFullscreen = false;
+        this.attachmentViewerResourceUrl = invoice.attachment && this.isPdfAttachment(invoice.attachment)
+          ? this.sanitizer.bypassSecurityTrustResourceUrl(this.mediaUrl(invoice.attachment))
+          : null;
         this.refreshView();
       },
       error: error => {
@@ -238,7 +249,19 @@ export class NewInvoicesComponent implements OnInit {
   }
 
   backToList(): void {
+    this.approvalHistoryVisible = false;
+    this.attachmentFullscreen = false;
     this.router.navigate(['/new-invoices']);
+  }
+
+  openApprovalHistory(): void {
+    this.approvalHistoryVisible = true;
+    this.refreshView();
+  }
+
+  closeApprovalHistory(): void {
+    this.approvalHistoryVisible = false;
+    this.refreshView();
   }
 
   openCreateModal(): void {
@@ -462,6 +485,21 @@ export class NewInvoicesComponent implements OnInit {
     return `status-${status}`;
   }
 
+  listingStatusClass(status: number): string {
+    return `listing-status-${status}`;
+  }
+
+  statusIcon(status: number): string {
+    switch (status) {
+      case 0: return 'schedule';
+      case 1: return 'how_to_reg';
+      case 2: return 'business_center';
+      case 3: return 'apartment';
+      case 4: return 'cancel';
+      default: return 'help';
+    }
+  }
+
   formatDate(value?: string | null): string {
     return formatKolkataDate(value, '-');
   }
@@ -496,6 +534,13 @@ export class NewInvoicesComponent implements OnInit {
     return remark ? `${amountText} - ${remark}` : amountText;
   }
 
+  approvalAmountClass(invoice: NewInvoiceItem | null, approvedAmount?: number | null): string {
+    if (!invoice || approvedAmount === null || approvedAmount === undefined) return '';
+    return Math.abs(Number(approvedAmount) - Number(invoice.amount)) < 0.01
+      ? 'approval-amount-match'
+      : 'approval-amount-different';
+  }
+
   onAttachmentChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
@@ -521,6 +566,26 @@ export class NewInvoicesComponent implements OnInit {
     if (/^(https?:)?\/\//i.test(path) || path.startsWith('data:') || path.startsWith('blob:')) return path;
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
     return `${this.backendOrigin}${cleanPath}`;
+  }
+
+  zoomAttachment(change: number): void {
+    this.attachmentZoom = Math.min(3, Math.max(0.5, this.attachmentZoom + change));
+    this.refreshView();
+  }
+
+  resetAttachmentZoom(): void {
+    this.attachmentZoom = 1;
+    this.refreshView();
+  }
+
+  toggleAttachmentFullscreen(): void {
+    this.attachmentFullscreen = !this.attachmentFullscreen;
+    this.refreshView();
+  }
+
+  isPdfAttachment(value?: string | null): boolean {
+    if (!value) return false;
+    return /\.pdf(?:$|[?#])/i.test(value.trim());
   }
 
   private buildPayload(): NewInvoicePayload | null {
