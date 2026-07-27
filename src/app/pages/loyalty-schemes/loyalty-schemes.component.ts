@@ -25,6 +25,7 @@ interface SchemeFormModel {
   endDate: string;
   schemeType: string;
   basedOn: string;
+  redemptionEnabled: boolean;
   brochure: File | null;
   brochurePath: string;
   slabs: Array<{
@@ -254,6 +255,7 @@ export class LoyaltySchemesComponent implements OnInit {
       endDate: this.toDateInput(scheme.endDate),
       schemeType: 'Invoice',
       basedOn: scheme.basedOn || 'Value',
+      redemptionEnabled: scheme.redemptionEnabled,
       brochure: null,
       brochurePath: scheme.brochurePath || '',
       slabs: scheme.slabs.length ? scheme.slabs.map(slab => ({
@@ -479,6 +481,7 @@ export class LoyaltySchemesComponent implements OnInit {
       end_date: this.form.endDate,
       scheme_type: 'Invoice',
       based_on: this.form.basedOn,
+      redemption_enabled: this.form.redemptionEnabled,
       slabs: this.form.slabs.map(slab => ({
         tier_name: slab.tierName.trim(),
         value_from: Number(slab.valueFrom ?? 0),
@@ -520,6 +523,7 @@ export class LoyaltySchemesComponent implements OnInit {
       endDate: '',
       schemeType: 'Invoice',
       basedOn: 'Value',
+      redemptionEnabled: false,
       brochure: null,
       brochurePath: '',
       slabs: [this.emptySlab()]

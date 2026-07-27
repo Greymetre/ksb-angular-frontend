@@ -29,6 +29,7 @@ export interface LoyaltyScheme {
   endDate: string;
   schemeType: string;
   basedOn: string;
+  redemptionEnabled: boolean;
   status: string;
   workflowStatus: string;
   brochurePath?: string | null;
@@ -55,6 +56,7 @@ export interface LoyaltySchemePayload {
   end_date: string;
   scheme_type: string;
   based_on: string;
+  redemption_enabled: boolean;
   slabs: Array<{
     tier_name: string;
     value_from: number;
@@ -207,6 +209,7 @@ export class LoyaltySchemeService {
       endDate: this.readString(row['end_date'] ?? row['endDate']),
       schemeType: this.readString(row['scheme_type'] ?? row['schemeType']) || 'Invoice',
       basedOn: this.readString(row['based_on'] ?? row['basedOn']) || 'Value',
+      redemptionEnabled: this.readBoolean(row['redemption_enabled'] ?? row['redemptionEnabled'], false),
       status: this.readString(row['status']) || 'Draft',
       workflowStatus: this.readString(row['workflow_status'] ?? row['workflowStatus'] ?? row['status']) || 'Draft',
       brochurePath: this.readNullableString(row['brochure_path'] ?? row['brochurePath']),
@@ -304,6 +307,13 @@ export class LoyaltySchemeService {
       return Number.isFinite(parsed) ? parsed : 0;
     }
     return 0;
+  }
+
+  private readBoolean(value: unknown, fallback = false): boolean {
+    if (value === null || value === undefined || value === '') return fallback;
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') return value !== 0;
+    return ['true', '1', 'yes', 'y', 'on'].includes(String(value).toLowerCase());
   }
 
   private readString(value: unknown): string {
