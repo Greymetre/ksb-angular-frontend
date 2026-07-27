@@ -385,7 +385,13 @@ export class NewInvoicesComponent implements OnInit {
   }
 
   openApprovalDialog(invoice: NewInvoiceItem, level: 'ss' | 'sales' | 'ho' | 'reject'): void {
-    this.approvalDialog = { visible: true, invoice, level, approvedAmount: level === 'reject' ? null : invoice.amount, remark: '' };
+    this.approvalDialog = {
+      visible: true,
+      invoice,
+      level,
+      approvedAmount: level === 'reject' ? null : this.lastApprovedAmount(invoice, level),
+      remark: ''
+    };
     this.refreshView();
   }
 
@@ -539,6 +545,16 @@ export class NewInvoicesComponent implements OnInit {
     return Math.abs(Number(approvedAmount) - Number(invoice.amount)) < 0.01
       ? 'approval-amount-match'
       : 'approval-amount-different';
+  }
+
+  private lastApprovedAmount(invoice: NewInvoiceItem, level: 'ss' | 'sales' | 'ho'): number {
+    if (level === 'ho') {
+      return invoice.salesApprovedAmount ?? invoice.ssApprovedAmount ?? invoice.amount;
+    }
+    if (level === 'sales') {
+      return invoice.ssApprovedAmount ?? invoice.amount;
+    }
+    return invoice.amount;
   }
 
   onAttachmentChange(event: Event): void {

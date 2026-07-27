@@ -35,6 +35,31 @@
 
             <div class="detail-grid">
               <div>
+                <div class="section-title">Retailer Information</div>
+                <div class="readonly-field">
+                  <label>Customer Name</label>
+                  <input type="text" [value]="selectedInvoice.customerName || '-'" readonly />
+                </div>
+                <div class="readonly-field">
+                  <label>Mobile Number</label>
+                  <input type="text" [value]="selectedInvoice.mobileNumber || '-'" readonly />
+                </div>
+                <div class="readonly-field">
+                  <label>City / Zone</label>
+                  <input type="text"
+                    [value]="(selectedInvoice.cityName || '-') + ' / ' + (selectedInvoice.zoneName || '-')" readonly />
+                </div>
+                <div class="readonly-field">
+                  <label>Assigned Distributor</label>
+                  <input type="text" [value]="selectedInvoice.assignedDistributorName || '-'" readonly />
+                </div>
+                <div class="readonly-field">
+                  <label>Assigned Employee</label>
+                  <input type="text" [value]="selectedInvoice.assignedEmployeeName || '-'" readonly />
+                </div>
+              </div>
+
+              <div>
                 <div class="section-title">Invoice Information</div>
                 <div class="readonly-field">
                   <label>Invoice Number</label>
@@ -62,39 +87,6 @@
                   <label>Scheme Hint</label>
                   <input type="text" [value]="selectedInvoice.schemeHintMessage" readonly />
                 </div>
-              </div>
-
-              <div>
-                <div class="section-title">Retailer Information</div>
-                <div class="readonly-field">
-                  <label>Retailer ID</label>
-                  <input type="text" [value]="selectedInvoice.retailerCode" readonly />
-                </div>
-                <div class="readonly-field">
-                  <label>Customer Name</label>
-                  <input type="text" [value]="selectedInvoice.customerName || '-'" readonly />
-                </div>
-                <div class="readonly-field">
-                  <label>Mobile Number</label>
-                  <input type="text" [value]="selectedInvoice.mobileNumber || '-'" readonly />
-                </div>
-                <div class="readonly-field">
-                  <label>City / Zone</label>
-                  <input type="text"
-                    [value]="(selectedInvoice.cityName || '-') + ' / ' + (selectedInvoice.zoneName || '-')" readonly />
-                </div>
-              </div>
-            </div>
-
-            <div class="detail-grid compact">
-              <div class="readonly-field">
-                <label>Created By</label>
-                <input type="text" [value]="selectedInvoice.createdByName || selectedInvoice.createdBy || '-'"
-                  readonly />
-              </div>
-              <div class="readonly-field">
-                <label>Created At</label>
-                <input type="text" [value]="formatDateTime(selectedInvoice.createdAt)" readonly />
               </div>
             </div>
 
