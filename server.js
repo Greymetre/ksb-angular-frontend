@@ -54,6 +54,20 @@ const server = http.createServer((request, response) => {
     return;
   }
 
+  if (requestPath === '/runtime-config.js') {
+    const apiOrigin = String(
+      process.env.API_ORIGIN ||
+      process.env.BACKEND_URL ||
+      'https://ksb-net-backend-production.up.railway.app'
+    ).replace(/\/+$/, '');
+    response.writeHead(200, {
+      'Content-Type': 'text/javascript; charset=utf-8',
+      'Cache-Control': 'no-store',
+    });
+    response.end(`window.__KSB_CONFIG__=${JSON.stringify({ apiOrigin })};`);
+    return;
+  }
+
   const normalizedPath = path.normalize(requestPath).replace(/^(\.\.[/\\])+/, '');
   const filePath = path.join(publicDir, normalizedPath === '/' ? 'index.html' : normalizedPath);
 
